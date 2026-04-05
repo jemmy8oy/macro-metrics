@@ -20,9 +20,9 @@ Each phase ends with a hard gate. The next phase must not begin until all gate c
 |---|---|
 | **GitHub Phase 1** (spec) | `[1c]` spec PR merged **and** `[2a]` has created all `[2]` design issues |
 | **GitHub Phase 2** (UI/UX design) | All `[2]` design issues closed |
-| **GitHub Phase 3** (user stories) | `[3a]` story spec PR merged **and** `[3b]` has created all `[3]` implementation issues |
+| **GitHub Phase 3** (user stories) | `[3a]` story spec PR merged **and** `[3b]` has created all `[3]` story issues **and** all `[4]` frontend implementation issues |
 | **GitHub Phase 4** (frontend impl) | All `[4]` frontend implementation issues closed |
-| **GitHub Phase 5** (backend design) | `[5a]` backend design PR merged **and** `[5b]`/`[5c]` have created all `[5]` backend issues |
+| **GitHub Phase 5** (backend design) | `[5a]` backend design PR merged **and** `[5b]`/`[5c]` have created all `[5]` story issues **and** all `[6]` backend implementation issues |
 | **GitHub Phase 6** (backend impl) | All `[5]`/`[6]` backend stories closed |
 | **GitHub Phase 7** (MVP) | `[7a]` walkthrough published |
 
@@ -233,6 +233,25 @@ Rules:
 
 ---
 
+#### GitHub Phase 4 — Frontend implementation issues (created by `[3b]`)
+
+One issue per **frontend story** to be implemented. Created at the same time as `[3]` story issues when `[3b]` is actioned. Title format:
+
+```
+[4] <Feature or story name>
+```
+
+Examples:
+- `[4] Preset ratio card grid`
+- `[4] Ratio chart component`
+- `[4] Metric picker UI`
+- `[4] Custom comparison chart`
+- `[4] Indicator card component`
+
+Each `[4]` issue maps to a `[3]` story — the `[3]` issue holds the acceptance criteria, the `[4]` issue is what the AI implements.
+
+---
+
 #### GitHub Phase 5/6 — Backend user story issues (created by `[5c]`)
 
 One issue per **backend capability**. Created automatically when `[5c]` is actioned after `[5b]` merges. Title format:
@@ -246,6 +265,26 @@ Examples:
 - `[5] GET /api/metrics/{id} returns time series for a metric`
 - `[5] GET /api/metrics/ratio computes and returns ratio series`
 - `[5] FRED fetcher retrieves US CPI series`
+
+---
+
+#### GitHub Phase 6 — Backend implementation issues (created by `[5c]`)
+
+One issue per **backend capability** to be implemented. Created at the same time as `[5]` story issues when `[5c]` is actioned. Title format:
+
+```
+[6] <Backend capability or endpoint>
+```
+
+Examples:
+- `[6] GET /api/metrics endpoint`
+- `[6] GET /api/metrics/{id} endpoint`
+- `[6] GET /api/metrics/ratio endpoint`
+- `[6] FRED fetcher service`
+- `[6] ONS fetcher service`
+- `[6] yfinance fetcher service`
+
+Each `[6]` issue maps to a `[5]` story — the `[5]` issue holds the acceptance criteria, the `[6]` issue is what the AI implements (TDD: tests first).
 
 ---
 
