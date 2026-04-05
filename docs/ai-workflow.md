@@ -159,6 +159,7 @@ When the AI raises a PR for an issue, it does three things:
 2. **Comment on the issue** — The AI posts a comment on the issue itself:
    > 🤖 PR raised: #42 — please review when ready.
 3. **Assign the PR to the repo owner** — Every PR is assigned to `jemmy8oy` so it appears in the developer's assigned PRs list and is easy to find.
+4. **Assign the linked issue to the repo owner** — Every issue the AI acts on is also assigned to `jemmy8oy` so all active work appears in one place.
 
 This means anyone watching the issue gets notified and can navigate to the PR without searching for it.
 
