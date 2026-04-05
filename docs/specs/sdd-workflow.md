@@ -164,6 +164,77 @@ A good story has acceptance criteria specific enough that there is no ambiguity 
 
 ---
 
+### Issue naming conventions
+
+#### Phase 2 — UI/UX design issues (created by `[2a]`)
+
+One issue per **frontend feature**. Title format:
+
+```
+[2] <Feature name> design
+```
+
+Examples:
+- `[2] Preset ratio card grid design`
+- `[2] Ratio chart component design`
+- `[2] Metric picker UI design`
+- `[2] Indicator card component design`
+
+Backend features (E1 data/API) do **not** get a `[2]` design issue — their design is deferred to Phase 5 (`[5a]`).
+
+---
+
+#### Phase 3 — Frontend user story issues (created by `[3b]`)
+
+One issue per **user story** within a feature. Title format:
+
+```
+[3] <Short description of the user action or screen state>
+```
+
+Examples:
+- `[3] User can view preset ratio cards on homepage`
+- `[3] Ratio card shows current value and % deviation from average`
+- `[3] User can select a custom numerator and denominator`
+- `[3] Custom comparison chart updates on metric selection`
+- `[3] User sees a loading state while ratio data fetches`
+
+Rules:
+- One story = one testable behaviour
+- Name from the user's perspective, not the implementation
+- Reference the signed-off ASCII mockup state in the acceptance criteria
+
+---
+
+#### Phase 5/6 — Backend user story issues (created by `[5c]`)
+
+One issue per **backend story**. Title format:
+
+```
+[5] <Short description of the capability or endpoint>
+```
+
+Examples:
+- `[5] GET /api/metrics returns full metric catalogue`
+- `[5] GET /api/metrics/{id} returns time series for a metric`
+- `[5] GET /api/metrics/ratio computes and returns ratio series`
+- `[5] FRED fetcher retrieves US CPI series`
+
+---
+
+#### Feature file — Stories section
+
+Once issues are created, update the relevant `docs/features/*.md` `## Stories` section:
+
+```markdown
+## Stories
+- #42 — User can view preset ratio cards on homepage
+- #43 — Ratio card shows current value and % deviation from average
+- #44 — User sees a loading state while ratio data fetches
+```
+
+---
+
 ### Phase 5 — UI + Skeleton Backend
 **Implementation**
 
