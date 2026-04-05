@@ -48,14 +48,23 @@ Backend (.NET 10 — data aggregation proxy)
 
 No EF Core or PostgreSQL required for MVP — the backend is a stateless proxy.
 
-## Epics
+## Epics (GitHub Phase 2 — UI/UX)
+
+These epics cover the user-facing product. Each frontend feature will have a `[2]` design issue created by `[2a]`.
 
 | Epic | Description |
 |---|---|
-| [E1 — Data Ingestion & API](../epics/e1-data-ingestion.md) | Fetch, normalise, and expose all metric data *(backend — draft, to be detailed in Phase 6)* |
 | [E2 — Dashboard & Preset Ratios](../epics/e2-dashboard-presets.md) | Homepage with 9 curated ratio cards |
 | [E3 — Custom Comparison Tool](../epics/e3-custom-comparison.md) | User-driven metric picker + ratio chart |
 | [E4 — Standalone Indicator Cards](../epics/e4-indicator-cards.md) | CAPE and bond yield indicator cards |
+
+## Backend capability backlog (GitHub Phase 5)
+
+Backend requirements are captured as a draft backlog, to be fully designed in the `[5a]` backend design PR after the frontend skeleton is signed off.
+
+| Backlog doc | Description |
+|---|---|
+| [Phase 5 — Data Ingestion](../backlog/phase5-data-ingestion.md) | Fetch, normalise, and expose all 14 metrics via REST API |
 
 ## Next: Phase 2 — UI/UX Design
 

@@ -1,6 +1,6 @@
-# F1.1 — External Data Fetchers [draft]
+# phase5-data-fetchers — Phase 5 Backlog
 
-**Epic:** [E1 — Data Ingestion & API](../epics/e1-data-ingestion.md)
+> **Status: Draft — to be detailed in GitHub Phase 5 (`[5a]`)**
 
 > **Draft** — implementation details to be designed in Phase 6 (Backend Architecture). This file captures the high-level capability requirement only.
 

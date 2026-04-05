@@ -1,6 +1,6 @@
-# F1.2 — Data Normalisation & Alignment [draft]
+# phase5-data-normalisation — Phase 5 Backlog
 
-**Epic:** [E1 — Data Ingestion & API](../epics/e1-data-ingestion.md)
+> **Status: Draft — to be detailed in GitHub Phase 5 (`[5a]`)**
 
 > **Draft** — implementation details to be designed in Phase 6. This file captures the high-level capability requirement only.
 

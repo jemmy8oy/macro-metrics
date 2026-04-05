@@ -1,6 +1,6 @@
-# F1.3 — Metrics REST API [draft]
+# phase5-metrics-api — Phase 5 Backlog
 
-**Epic:** [E1 — Data Ingestion & API](../epics/e1-data-ingestion.md)
+> **Status: Draft — to be detailed in GitHub Phase 5 (`[5a]`)**
 
 > **Draft** — API contract to be finalised in Phase 5 (Skeleton Backend) once the UI/UX design is signed off. Endpoint shapes here are indicative only.
 
