@@ -137,6 +137,18 @@ Formal phases end here. Post-MVP work is informal and developer-led.
 
 ---
 
+## Branch Strategy
+
+| Branch | Purpose |
+|---|---|
+| `main` | Production-ready code only — merged from `dev` when a milestone is complete |
+| `dev` | Integration branch — **all feature/spec/docs PRs target `dev`** |
+| `feat/*`, `fix/*`, `spec/*`, `docs/*` | Short-lived work branches — always branch from `dev`, always PR back to `dev` |
+
+**Never PR directly to `main`.** The AI always sets `dev` as the base branch when raising PRs.
+
+---
+
 ## PR ↔ Issue Linking
 
 When the AI raises a PR for an issue, it does three things:
