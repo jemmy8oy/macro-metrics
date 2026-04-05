@@ -12,22 +12,26 @@ A structured, iterative development process designed to maximise in-chat plannin
 
 ## Phase gates — do not cross
 
-Each phase ends with a merge gate. The next phase must not begin until the current phase's PR is merged.
+> **Terminology note:** "GitHub Phase N" refers to the phase numbering used in issue titles (`[1c]`, `[2]`, `[3]`, etc.) and in `docs/ai-workflow.md`. These align with but do not map 1:1 to the SDD phase names below — see the [GitHub Phase Mapping](#github-phase-mapping) table.
 
-| Gate | Condition to proceed |
+Each phase ends with a hard gate. The next phase must not begin until all gate conditions are met.
+
+| GitHub Phase complete | Gate conditions |
 |---|---|
-| → Phase 2 | `[1c]` spec PR merged |
-| → Phase 3 | `[2a]` — all `[2]` design issues closed |
-| → Phase 4 | `[3a]` user story spec PR merged |
-| → Phase 5 | `[3b]` — all `[3]` frontend implementation issues created |
-| → Phase 6 | `[5a]` backend design PR merged |
-| → Phase 7 | All `[5]`/`[6]` backend stories closed |
+| **GitHub Phase 1** (spec) | `[1c]` spec PR merged **and** `[2a]` has created all `[2]` design issues |
+| **GitHub Phase 2** (UI/UX design) | All `[2]` design issues closed |
+| **GitHub Phase 3** (user stories) | `[3a]` story spec PR merged **and** `[3b]` has created all `[3]` implementation issues |
+| **GitHub Phase 4** (frontend impl) | All `[4]` frontend implementation issues closed |
+| **GitHub Phase 5** (backend design) | `[5a]` backend design PR merged **and** `[5b]`/`[5c]` have created all `[5]` backend issues |
+| **GitHub Phase 6** (backend impl) | All `[5]`/`[6]` backend stories closed |
+| **GitHub Phase 7** (MVP) | `[7a]` walkthrough published |
 
-**Current phase discipline:** When writing a spec PR, only produce artefacts for the current phase. Do not include:
-- API endpoint contracts in a Phase 1/2 spec PR (belongs in Phase 5)
-- Database schema in a Phase 1/2 spec PR (belongs in Phase 6)
-- Component props or implementation code in feature files (belongs in Phase 5 skeleton)
-- User stories in a Phase 1/2 spec PR (belongs in Phase 3/4)
+**Current phase discipline:** Only produce artefacts that belong to the current GitHub phase. Do not include:
+- `[2]` design issue content in a GitHub Phase 1 spec PR (create issues via `[2a]`, don't write mockups in the spec)
+- API endpoint contracts in a GitHub Phase 1/2 artefact (belongs in GitHub Phase 5 via `[5a]`)
+- Database schema before UI/UX is signed off (belongs in GitHub Phase 5/6)
+- Component props or implementation code in feature files (belongs in GitHub Phase 4 skeleton)
+- User stories before mockups are approved (belongs in GitHub Phase 3 via `[3a]`/`[3b]`)
 
 ---
 
@@ -186,27 +190,30 @@ A good story has acceptance criteria specific enough that there is no ambiguity 
 
 ### Issue naming conventions
 
-#### Phase 2 — UI/UX design issues (created by `[2a]`)
+#### GitHub Phase 2 — UI/UX design issues (created by `[2a]`)
 
-One issue per **frontend feature**. Title format:
+One issue per **frontend feature**. Created automatically when `[2a]` is actioned after `[1c]` merges. Title format:
 
 ```
 [2] <Feature name> design
 ```
 
 Examples:
+- `[2] Homepage layout & navigation design`
 - `[2] Preset ratio card grid design`
 - `[2] Ratio chart component design`
 - `[2] Metric picker UI design`
+- `[2] Custom comparison chart design`
 - `[2] Indicator card component design`
+- `[2] Indicators section design`
 
-Backend features (E1 data/API) do **not** get a `[2]` design issue — their design is deferred to Phase 5 (`[5a]`).
+Backend features do **not** get a `[2]` design issue — their design is handled in GitHub Phase 5 via `[5a]`.
 
 ---
 
-#### Phase 3 — Frontend user story issues (created by `[3b]`)
+#### GitHub Phase 3 — Frontend user story issues (created by `[3b]`)
 
-One issue per **user story** within a feature. Title format:
+One issue per **user story** within a feature. Created automatically when `[3b]` is actioned after `[3a]` merges. Title format:
 
 ```
 [3] <Short description of the user action or screen state>
@@ -222,13 +229,13 @@ Examples:
 Rules:
 - One story = one testable behaviour
 - Name from the user's perspective, not the implementation
-- Reference the signed-off ASCII mockup state in the acceptance criteria
+- Acceptance criteria must reference a specific signed-off ASCII mockup state
 
 ---
 
-#### Phase 5/6 — Backend user story issues (created by `[5c]`)
+#### GitHub Phase 5/6 — Backend user story issues (created by `[5c]`)
 
-One issue per **backend story**. Title format:
+One issue per **backend capability**. Created automatically when `[5c]` is actioned after `[5b]` merges. Title format:
 
 ```
 [5] <Short description of the capability or endpoint>
@@ -244,13 +251,13 @@ Examples:
 
 #### Feature file — Stories section
 
-Once issues are created, update the relevant `docs/features/*.md` `## Stories` section:
+Once issues are created by `[3b]` or `[5c]`, update the relevant `docs/features/*.md` `## Stories` section:
 
 ```markdown
 ## Stories
-- #42 — User can view preset ratio cards on homepage
-- #43 — Ratio card shows current value and % deviation from average
-- #44 — User sees a loading state while ratio data fetches
+- #42 — [3] User can view preset ratio cards on homepage
+- #43 — [3] Ratio card shows current value and % deviation from average
+- #44 — [3] User sees a loading state while ratio data fetches
 ```
 
 ---
