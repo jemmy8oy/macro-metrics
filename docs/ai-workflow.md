@@ -141,11 +141,13 @@ Formal phases end here. Post-MVP work is informal and developer-led.
 
 | Branch | Purpose |
 |---|---|
-| `main` | Production-ready code only — merged from `dev` when a milestone is complete |
+| `main` | Production-ready code only — merged from `dev` by the **human developer** when a milestone is complete |
 | `dev` | Integration branch — **all feature/spec/docs PRs target `dev`** |
 | `feat/*`, `fix/*`, `spec/*`, `docs/*` | Short-lived work branches — always branch from `dev`, always PR back to `dev` |
 
 **Never PR directly to `main`.** The AI always sets `dev` as the base branch when raising PRs.
+
+**`dev` → `main` is a human-only action.** The AI never raises a PR targeting `main` and never merges `dev` into `main`. This is a deliberate gate — the developer decides when a milestone is production-ready.
 
 ---
 
