@@ -110,6 +110,14 @@ Decompose the product into epics and features at a coarse-grained level — esta
 - `docs/epics/*.md` — one file per epic
 - `docs/features/*.md` — one file per feature, referencing its epic
 
+**Spec PR guidance:**
+The Phase 1/2 spec PR should contain the vision doc, epics, and feature files. Keep the following in mind:
+
+- **Frontend features** (UI epics): describe *what the user sees and does* — layout, interactions, open UX questions. Do not specify React component props or implementation detail here.
+- **Backend features** (data/API epics): describe the *capability* only at this stage (e.g. "fetch time-series from FRED"). Mark them as `[draft]` — implementation detail belongs in Phase 6. Do not include endpoint contracts, code snippets, or service design in the spec PR.
+- **Open questions**: surface UI/UX decisions that need resolving before Phase 3 (e.g. date range selector style, card layout, picker interaction). Collect these in the vision doc's "Next: Phase 2" section.
+- **No implementation detail jumps**: resist the urge to spec the API contract or database schema before the UI is designed. The full shape of the API only becomes clear after Phase 3 (UI/UX) and Phase 4 (user stories).
+
 ---
 
 ### Phase 3 — UI/UX Design
