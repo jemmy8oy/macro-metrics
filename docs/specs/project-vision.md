@@ -52,7 +52,24 @@ No EF Core or PostgreSQL required for MVP — the backend is a stateless proxy.
 
 | Epic | Description |
 |---|---|
-| [E1 — Data Ingestion & API](../epics/e1-data-ingestion.md) | Fetch, normalise, and expose all metric data |
+| [E1 — Data Ingestion & API](../epics/e1-data-ingestion.md) | Fetch, normalise, and expose all metric data *(backend — draft, to be detailed in Phase 6)* |
 | [E2 — Dashboard & Preset Ratios](../epics/e2-dashboard-presets.md) | Homepage with 9 curated ratio cards |
 | [E3 — Custom Comparison Tool](../epics/e3-custom-comparison.md) | User-driven metric picker + ratio chart |
 | [E4 — Standalone Indicator Cards](../epics/e4-indicator-cards.md) | CAPE and bond yield indicator cards |
+
+## Next: Phase 2 — UI/UX Design
+
+With the vision and epic/feature breakdown agreed, the next phase is to design the user-facing product in detail before any code is written.
+
+**Deliverables for Phase 2:**
+- ASCII mockup for each page state (homepage, expanded chart, custom comparison, indicators section)
+- Mermaid workflow diagram for each key user interaction (e.g. picking a custom comparison)
+- Resolution of all open UI/UX questions listed in the feature files
+- Sign-off on mockups before user stories are written
+
+Open UI/UX questions to resolve (collected from feature files):
+- Date range selector style — slider, preset buttons (5y/10y/20y/Max), or free inputs?
+- Preset card grid layout — columns, above-the-fold count, expandable?
+- Metric picker style — dropdowns, searchable select, or visual grid?
+- Indicator card visual style — same as ratio cards or distinct?
+- Warm/cool colour scheme for above/below average — or single colour + threshold line?
