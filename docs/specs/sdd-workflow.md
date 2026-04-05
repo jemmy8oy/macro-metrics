@@ -8,6 +8,26 @@ A structured, iterative development process designed to maximise in-chat plannin
 - **Defer implementation details** — don't think about databases or frameworks until the product shape is fully understood.
 - **Let the spec drive the code** — user stories, mockups, and API contracts are the source of truth.
 - **Tests are a spec artefact** — a unit test is a more precise, executable version of a spec step. Writing tests before implementation is not extra work; it is the spec becoming code.
+- **Strict phase linearity** — each phase has a gate. Do not produce artefacts that belong to a later phase. If detail is discovered early, note it as an open question and defer it to the correct phase.
+
+## Phase gates — do not cross
+
+Each phase ends with a merge gate. The next phase must not begin until the current phase's PR is merged.
+
+| Gate | Condition to proceed |
+|---|---|
+| → Phase 2 | `[1c]` spec PR merged |
+| → Phase 3 | `[2a]` — all `[2]` design issues closed |
+| → Phase 4 | `[3a]` user story spec PR merged |
+| → Phase 5 | `[3b]` — all `[3]` frontend implementation issues created |
+| → Phase 6 | `[5a]` backend design PR merged |
+| → Phase 7 | All `[5]`/`[6]` backend stories closed |
+
+**Current phase discipline:** When writing a spec PR, only produce artefacts for the current phase. Do not include:
+- API endpoint contracts in a Phase 1/2 spec PR (belongs in Phase 5)
+- Database schema in a Phase 1/2 spec PR (belongs in Phase 6)
+- Component props or implementation code in feature files (belongs in Phase 5 skeleton)
+- User stories in a Phase 1/2 spec PR (belongs in Phase 3/4)
 
 ---
 
