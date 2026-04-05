@@ -57,16 +57,18 @@ function ensureLabels() {
 
 // ── Milestone ─────────────────────────────────────────────────────────────────
 
+const MILESTONE_TITLE = 'MVP';
+
 function ensureMilestone() {
   log('Creating MVP milestone...');
   const existing = ghSilent(`api repos/{owner}/{repo}/milestones --jq '.[] | select(.title=="MVP") | .number'`);
   if (existing) {
-    log(`  Milestone "MVP" already exists (#${existing}) — using it`);
-    return existing;
+    log(`  Milestone "${MILESTONE_TITLE}" already exists (#${existing}) — using it`);
+    return MILESTONE_TITLE;
   }
-  const result = gh(`api repos/{owner}/{repo}/milestones --method POST --field title="MVP" --field description="All initial SDD phases through to first launch" --jq '.number'`);
-  log(`  Created milestone "MVP" (#${result})`);
-  return result;
+  const number = gh(`api repos/{owner}/{repo}/milestones --method POST --field title="${MILESTONE_TITLE}" --field description="All initial SDD phases through to first launch" --jq '.number'`);
+  log(`  Created milestone "${MILESTONE_TITLE}" (#${number})`);
+  return MILESTONE_TITLE;
 }
 
 // ── Issues ────────────────────────────────────────────────────────────────────
