@@ -1,0 +1,61 @@
+# Controls deployment names: "{fullnameOverride}-frontend" and "{fullnameOverride}-backend"
+# e.g. fullnameOverride: "balenthiran-apeify" -> balenthiran-apeify-frontend, balenthiran-apeify-backend
+fullnameOverride: "your-app"
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: your-app.co.uk    # Replace with your domain
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - hosts:
+        - your-app.co.uk      # Replace with your domain
+      secretName: your-app-tls
+
+# Registry configuration - replace with your OCI/DockerHub/etc registry prefix
+registryPrefix: "lhr.ocir.io/your-namespace"
+
+apps:
+  - name: backend
+    image:
+      repository: lhr.ocir.io/your-namespace/your-app-backend   # Update for your registry
+      tag: latest
+      pullPolicy: Always
+    containerPort: 8080
+    replicas: 1
+    service:
+      port: 80
+      targetPort: 8080
+    ingress:
+      path: /api
+      pathType: Prefix
+    env:
+      - name: ConnectionStrings__DefaultConnection
+        valueFrom:
+          secretKeyRef:
+            name: your-app-secrets   # Name of your K8s secret
+            key: DATABASE_URL
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+
+  - name: frontend
+    image:
+      repository: lhr.ocir.io/your-namespace/your-app   # Update for your registry
+      tag: latest
+      pullPolicy: Always
+    containerPort: 80
+    replicas: 1
+    service:
+      port: 80
+      targetPort: 80
+    ingress:
+      path: /
+      pathType: Prefix
+    resources: {}
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}

@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="MacroMetrics.Abstractions/MacroMetrics.Abstractions.csproj" />
+  <Project Path="MacroMetrics.WebApi/MacroMetrics.WebApi.csproj" />
+  <Project Path="MacroMetrics.DataModels/MacroMetrics.DataModels.csproj" />
+  <Project Path="MacroMetrics.Database/MacroMetrics.Database.csproj" />
+  <Project Path="MacroMetrics.DomainModels/MacroMetrics.DomainModels.csproj" />
+  <Project Path="MacroMetrics.EntityModels/MacroMetrics.EntityModels.csproj" />
+  <Project Path="MacroMetrics.Services/MacroMetrics.Services.csproj" />
+</Solution>

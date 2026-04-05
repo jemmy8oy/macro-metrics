@@ -1,0 +1,394 @@
+#!/usr/bin/env node
+/**
+ * init-issues.mjs
+ *
+ * Scaffolds the initial SDD orchestrator issues for a new project.
+ * Run this once after the repo is pushed to GitHub.
+ *
+ * Prerequisites:
+ *   - gh CLI installed and authenticated (gh auth login)
+ *   - Run from the project root
+ *
+ * Usage:
+ *   node scripts/init-issues.mjs
+ */
+
+import { execSync } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { tmpdir } from 'os';
+import { join } from 'path';
+
+function log(msg) {
+  console.log(`[init-issues] ${msg}`);
+}
+
+function gh(args) {
+  return execSync(`gh ${args}`, { encoding: 'utf8' }).trim();
+}
+
+function ghSilent(args) {
+  try {
+    return execSync(`gh ${args}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+  } catch {
+    return null;
+  }
+}
+
+// ── Labels ────────────────────────────────────────────────────────────────────
+
+const LABELS = [
+  { name: 'waiting-for-ai',    color: '2ea44f', description: "AI's turn — discussion, spec iteration, or PR review" },
+  { name: 'waiting-for-human', color: '0075ca', description: "Human's turn — reviewing, providing input, or signing off" },
+  { name: 'action-ready',      color: '7057ff', description: 'Issue approved for implementation — AI should start coding' },
+];
+
+function ensureLabels() {
+  log('Creating labels...');
+  for (const label of LABELS) {
+    const existing = ghSilent(`label list --search "${label.name}" --json name -q ".[0].name"`);
+    if (existing === label.name) {
+      log(`  Label "${label.name}" already exists — skipping`);
+    } else {
+      gh(`label create "${label.name}" --color "${label.color}" --description "${label.description}"`);
+      log(`  Created label "${label.name}"`);
+    }
+  }
+}
+
+// ── Milestone ─────────────────────────────────────────────────────────────────
+
+function ensureMilestone() {
+  log('Creating MVP milestone...');
+  const existing = ghSilent(`api repos/{owner}/{repo}/milestones --jq '.[] | select(.title=="MVP") | .number'`);
+  if (existing) {
+    log(`  Milestone "MVP" already exists (#${existing}) — using it`);
+    return existing;
+  }
+  const result = gh(`api repos/{owner}/{repo}/milestones --method POST --field title="MVP" --field description="All initial SDD phases through to first launch" --jq '.number'`);
+  log(`  Created milestone "MVP" (#${result})`);
+  return result;
+}
+
+// ── Issues ────────────────────────────────────────────────────────────────────
+
+const ISSUES = [
+  {
+    title: '[1a] Set up pipeline secrets and variables',
+    body: `## Summary
+
+Configure CI/CD pipeline secrets and repository variables so automated workflows can build and deploy the app.
+
+## Acceptance Criteria
+
+- [ ] Repository **Variables** added (Settings → Secrets and variables → Variables):
+  - \`OCIR_REGISTRY\` — e.g. \`lhr.ocir.io\`
+  - \`OCIR_NAMESPACE\` — your OCI tenancy namespace
+- [ ] Repository **Secrets** added (Settings → Secrets and variables → Secrets):
+  - \`OCIR_USERNAME\` — e.g. \`tenancy/oracleidentitycloudservice/your@email.com\`
+  - \`OCIR_AUTH_TOKEN\` — OCI auth token
+
+## AI Notes
+
+This issue is actioned by the developer, not the AI. Close it once secrets are configured.
+`,
+  },
+  {
+    title: '[1b] Set up branch policies',
+    body: `## Summary
+
+Configure branch protection rules so that \`main\` is developer-only and all agent work flows through \`dev\` via PRs.
+
+## Acceptance Criteria
+
+- [ ] \`main\` branch created and protected (require PR, no direct push)
+- [ ] \`dev\` branch created — default branch for agent PRs
+- [ ] **"Automatically delete head branches"** enabled (Settings → General)
+
+## AI Notes
+
+This issue is actioned by the developer. Close it once branch policies are in place.
+`,
+  },
+  {
+    title: '[1c] Define high-level project spec, vision and external dependencies',
+    body: `## Summary
+
+Capture the product vision and scope so the AI can produce the first spec PR — covering epics, features, and external dependencies.
+
+## Acceptance Criteria
+
+- [ ] Spec questionnaire completed (see below)
+- [ ] \`ai-ready\` label applied to this issue
+- [ ] AI raises a spec PR with vision statement, \`docs/epics/\`, \`docs/features/\`, and dependency notes
+- [ ] All ambiguities resolved via PR comments or \`needs-input\` issues
+- [ ] Spec PR reviewed and merged by developer
+
+## Spec Questionnaire
+
+Please answer the following, then add the \`ai-ready\` label:
+
+- **What problem does this product solve, and for whom?**
+
+- **What does a successful MVP look like?**
+
+- **Is Postgres required?** If so, any schema or domain hints?
+
+- **Any external data sources, APIs, or third-party integrations?**
+
+- **Any auth providers, payment gateways, or other dependencies?**
+
+- **What is explicitly out of scope for the MVP?**
+
+## AI Notes
+
+When this issue is labelled \`ai-ready\`:
+1. Read the questionnaire answers above
+2. Raise a spec PR containing: vision statement, \`docs/epics/*.md\`, \`docs/features/*.md\`, out-of-scope list, and external dependency notes
+3. Leave a PR comment for anything ambiguous — if unresolved after one round, open a \`needs-input\` issue
+`,
+  },
+  {
+    title: '[2a] Generate UI/UX design issues from approved spec',
+    body: `## Summary
+
+Once the spec PR from [1c] is merged, scan it for features and create one UI/UX design issue per feature area.
+
+## Acceptance Criteria
+
+- [ ] One \`[2] Feature name design\` issue created per feature identified in the spec
+- [ ] Each issue uses the **UI/UX Design** issue template
+- [ ] This issue closed once all \`[2]\` issues are created
+
+## Dependencies
+
+Depends on #[1c] spec PR being merged.
+
+## AI Notes
+
+Trigger: [1c] PR merged.
+Action: Read \`docs/features/\`, create one \`[2] <Feature> design\` issue per feature using the UI/UX Design template, then close this issue.
+`,
+  },
+  {
+    title: '[3a] Generate frontend user stories from approved UI/UX designs',
+    body: `## Summary
+
+Once all \`[2]\` design issues are closed (designs signed off), raise a user story spec PR with BDD-style stories for all features.
+
+## Acceptance Criteria
+
+- [ ] User story spec PR raised in \`docs/\` — BDD stories for every signed-off design
+- [ ] Human review gate — developer must approve before merge
+- [ ] This issue closed on merge
+
+## Dependencies
+
+Depends on all \`[2]\` design issues being closed.
+
+## AI Notes
+
+Trigger: all \`[2]\` issues closed.
+Action: Raise a PR adding \`docs/user-stories-frontend.md\` with BDD-style stories derived from the signed-off ASCII mockups. Each story: *As a [persona], I want to [action] so that [outcome]* with acceptance criteria referencing specific UI states.
+`,
+  },
+  {
+    title: '[3b] Create frontend GitHub issues from user story spec',
+    body: `## Summary
+
+Once the user story spec PR from [3a] is merged, create individual \`[4] Feature name\` frontend implementation issues — one per story.
+
+## Acceptance Criteria
+
+- [ ] One \`[4] <Story>\` issue created per story in the merged user story spec
+- [ ] Each issue uses the **User Story** issue template
+- [ ] \`docs/features/*.md\` updated with the GH issue numbers
+- [ ] This issue closed once all \`[4]\` issues are created
+
+## Dependencies
+
+Depends on [3a] PR being merged.
+
+## AI Notes
+
+Trigger: [3a] PR merged.
+Action: Read \`docs/user-stories-frontend.md\`, create one \`[4] <Story>\` issue per story, update the relevant \`docs/features/*.md\` with issue numbers, then close this issue.
+`,
+  },
+  {
+    title: '[5a] Create backend design spec',
+    body: `## Summary
+
+Once all frontend implementation issues (\`[4]\`) are closed, raise a backend design PR covering data models, API contracts, EF Core entities, service architecture, and an ER diagram.
+
+## Acceptance Criteria
+
+- [ ] Backend design PR raised containing:
+  - [ ] Mermaid ER diagram
+  - [ ] Entity and relationship definitions
+  - [ ] Service layer outline (SRP — see \`docs/specs/backend-srp.md\`)
+  - [ ] In-process integration test scenarios (what, not how)
+  - [ ] Any ADR notes
+- [ ] Developer reviews and merges
+- [ ] This issue closed on merge
+
+## Dependencies
+
+Depends on all \`[4]\` frontend issues being closed.
+
+## AI Notes
+
+Trigger: all \`[4]\` issues closed.
+Action: Raise a backend design PR. The OpenAPI spec generated from the skeleton app is the source of truth for API contracts. Follow \`docs/specs/backend-architecture.md\` and \`docs/specs/backend-srp.md\`.
+`,
+  },
+  {
+    title: '[5b] Generate backend user stories from approved backend design',
+    body: `## Summary
+
+Once the backend design PR from [5a] is merged, raise a backend user story spec PR.
+
+## Acceptance Criteria
+
+- [ ] Backend user story spec PR raised in \`docs/\`
+- [ ] Human review gate — developer must approve before merge
+- [ ] This issue closed on merge
+
+## Dependencies
+
+Depends on [5a] PR being merged.
+
+## AI Notes
+
+Trigger: [5a] PR merged.
+Action: Raise a PR adding \`docs/user-stories-backend.md\` with BDD-style stories derived from the API contracts and backend design.
+`,
+  },
+  {
+    title: '[5c] Create backend GitHub issues from user story spec',
+    body: `## Summary
+
+Once the backend user story spec PR from [5b] is merged, create individual \`[6] Feature name\` backend implementation issues — one per story.
+
+## Acceptance Criteria
+
+- [ ] One \`[6] <Story>\` issue created per story in the merged backend user story spec
+- [ ] Each issue uses the **User Story** issue template
+- [ ] \`docs/features/*.md\` updated with the GH issue numbers
+- [ ] This issue closed once all \`[6]\` issues are created
+
+## Dependencies
+
+Depends on [5b] PR being merged.
+
+## AI Notes
+
+Trigger: [5b] PR merged.
+Action: Read \`docs/user-stories-backend.md\`, create one \`[6] <Story>\` issue per story, update \`docs/features/*.md\` with issue numbers, then close this issue.
+`,
+  },
+  {
+    title: '[6a] Hook up Postgres DB (if required)',
+    body: `## Summary
+
+Wire up the real Postgres database — EF Core migrations, connection config, and schema — replacing the skeleton faker data.
+
+## Acceptance Criteria
+
+- [ ] EF Core migrations created and applied
+- [ ] Connection string config documented
+- [ ] All skeleton faker routes replaced or wired to real data
+- [ ] PR raised and merged
+
+## Dependencies
+
+Depends on all \`[5]\` backend implementation issues being closed.
+
+## AI Notes
+
+Trigger: all \`[6]\` issues closed (or skip if Postgres was marked not required in [1c]).
+Action: Scaffold EF Core migrations, wire connection string from K8s secret, raise a PR.
+`,
+  },
+  {
+    title: '[7a] Share MVP — publish YouTube walkthrough and gather user feedback',
+    body: `## Summary
+
+Draft a YouTube walkthrough script and outline for the MVP launch.
+
+## Acceptance Criteria
+
+- [ ] AI drafts a walkthrough script covering key features and user journeys
+- [ ] Developer records and publishes the video
+- [ ] Feedback gathered from initial users
+
+## Dependencies
+
+Depends on [6a] (or all backend stories) being merged.
+
+## AI Notes
+
+Trigger: MVP is deployed and stable.
+Action: Draft a YouTube script with an intro, feature walkthrough sections, and a call to action. Structure it as a \`docs/mvp-walkthrough-script.md\` PR.
+`,
+  },
+  {
+    title: '[7b] Create production refinement tickets',
+    body: `## Summary
+
+Generate production refinement tickets covering performance, security, scaling, and testing gaps.
+
+## Acceptance Criteria
+
+- [ ] Refinement tickets created covering: performance, security hardening, scaling considerations, and test coverage gaps
+
+## Dependencies
+
+Depends on [7a].
+
+## AI Notes
+
+⚠️ **Confirm developer interest before actioning this issue.**
+Trigger: Developer explicitly asks the AI to action this.
+Action: Audit the codebase and raise targeted issues for: N+1 queries, missing indexes, auth hardening, rate limiting, load testing, and any coverage gaps identified during implementation.
+`,
+  },
+];
+
+// ── Main ──────────────────────────────────────────────────────────────────────
+
+async function run() {
+  log('Scaffolding initial SDD issues...');
+  log('');
+
+  ensureLabels();
+  log('');
+
+  const milestone = ensureMilestone();
+  log('');
+
+  log(`Creating ${ISSUES.length} orchestrator issues...`);
+  for (const issue of ISSUES) {
+    const existing = ghSilent(`issue list --search "${issue.title}" --state all --json title -q ".[0].title"`);
+    if (existing === issue.title) {
+      log(`  SKIP  "${issue.title}" — already exists`);
+      continue;
+    }
+
+    const bodyFile = join(tmpdir(), `issue-body-${Date.now()}.md`);
+    writeFileSync(bodyFile, issue.body);
+
+    gh(`issue create --title "${issue.title}" --body-file "${bodyFile}" --milestone "${milestone}"`);
+    log(`  CREATED  "${issue.title}"`);
+
+    try { unlinkSync(bodyFile); } catch { /* ignore */ }
+  }
+
+  log('');
+  log('✅ Done. All initial SDD issues created.');
+  log('   Next step: work through Phase 1 issues, then add the waiting-for-ai label to [1c] once the spec questionnaire is complete.');
+}
+
+run().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
