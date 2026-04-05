@@ -139,11 +139,12 @@ Formal phases end here. Post-MVP work is informal and developer-led.
 
 ## PR ↔ Issue Linking
 
-When the AI raises a PR for an issue, it does two things:
+When the AI raises a PR for an issue, it does three things:
 
 1. **`Closes #N` in the PR body** — GitHub automatically closes the issue when the PR is merged and shows the link in both the PR and issue sidebars.
 2. **Comment on the issue** — The AI posts a comment on the issue itself:
    > 🤖 PR raised: #42 — please review when ready.
+3. **Assign the PR to the repo owner** — Every PR is assigned to `jemmy8oy` so it appears in the developer's assigned PRs list and is easy to find.
 
 This means anyone watching the issue gets notified and can navigate to the PR without searching for it.
 
