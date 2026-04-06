@@ -212,6 +212,39 @@ During frontend implementation (Phase 4), a **backend skeleton** is created alon
 
 ---
 
+## Frontend TDD
+
+Each acceptance criteria item in the stories above maps directly to a **Vitest + React Testing Library** test. Tests are written **before** the component — the AC defines what "done" looks like.
+
+```tsx
+// Example: PresetCard.test.tsx
+describe('PresetCard', () => {
+  it('shows a skeleton while data is loading', () => {
+    render(<PresetCard preset={UK_AFFORDABILITY} />);
+    expect(screen.getByTestId('card-skeleton')).toBeInTheDocument();
+  });
+
+  it('shows the ratio value and % above average once loaded', async () => {
+    render(<PresetCard preset={UK_AFFORDABILITY} />);
+    expect(await screen.findByText('8.3×')).toBeInTheDocument();
+    expect(screen.getByText('▲ 42% avg')).toBeInTheDocument();
+  });
+
+  it('shows an error state with retry button on fetch failure', async () => {
+    server.use(ratioErrorHandler);
+    render(<PresetCard preset={UK_AFFORDABILITY} />);
+    expect(await screen.findByText(/could not load/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
+  });
+});
+```
+
+**Convention:** one `*.test.tsx` file per component, mirroring the AC checklist. Tests describe behaviour from the user's perspective, not implementation details.
+
+See `docs/specs/testing-strategy.md` for the full frontend testing conventions.
+
+---
+
 ## Implementation notes
 
 - The `RatioChart` component (F2.2) is a single reusable component used in both compact mode (preset cards) and full mode (custom comparison): prop `mode: 'compact' | 'full'`
