@@ -108,4 +108,5 @@ Design the <feature name> for <product name>.
 - [ ] ASCII mockup for each key interaction state (loading, error, empty)
 - [ ] Mermaid workflow diagram for each key user action
 - [ ] All open UX questions answered
+- [ ] UX decisions table (question → resolution → rationale)
 ```

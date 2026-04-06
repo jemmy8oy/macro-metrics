@@ -102,12 +102,18 @@ Design the <feature name> for <product name>.
 - [ ] ASCII mockup for each key interaction state (loading, error, empty)
 - [ ] Mermaid workflow diagram for each key user action
 - [ ] All open UX questions answered
+- [ ] UX decisions table (question → resolution → rationale)
 ```
 
 **[2] design PR — what the AI produces:**
 - One ASCII mockup per page state and interaction state
 - One Mermaid sequence/flowchart diagram per key user action (shows what the system does, what data flows, what side effects occur)
-- Answers to all open UX questions listed in the issue
+- **UX decisions table** — a markdown table at the end of the design doc listing every open UX question from the `[2]` issues alongside the chosen resolution and the rationale. Format:
+
+  | # | Question | Resolution | Rationale |
+  |---|----------|------------|-----------|
+  | 1 | _question text_ | _chosen approach_ | _why_ |
+
 - Sign-off checklist in the PR body for the developer to review before merge
 
 ---
