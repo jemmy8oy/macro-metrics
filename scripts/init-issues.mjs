@@ -192,14 +192,30 @@ Action: Read \`docs/features/\`, create one \`[2] <Feature> design\` issue per f
 `,
   },
   {
-    title: '[3a] Generate frontend user stories from approved UI/UX designs',
+    title: '[3a] Frontend tech decisions + user story spec',
     body: `## Summary
 
-Once all \`[2]\` design issues are closed (designs signed off), raise a user story spec PR with BDD-style stories for all features.
+Once all \`[2]\` design issues are closed, raise a spec PR covering three things:
+
+**Part A — Frontend tech decisions** (\`docs/tech-decisions-frontend.md\`)
+Propose and justify library choices before implementation begins:
+- UI component library (e.g. shadcn/ui, MUI, Mantine, Radix UI, or none)
+- Chart / visualisation library (e.g. Recharts, Chart.js, Nivo, Visx, D3)
+- Date handling (e.g. date-fns, dayjs, native \`Intl\`/Temporal)
+- Any other notable runtime dependencies
+
+**Part B — BDD user stories** (\`docs/user-stories-frontend.md\`)
+BDD (Behaviour-Driven Development) stories derived from the signed-off designs:
+*As a [persona], I want to [action] so that [outcome]* — with acceptance criteria referencing specific UI states from the ASCII mockups.
+
+**Part C — API skeleton**
+Endpoint contracts (path, params, response shapes) and RTK Query hooks table — included in the user stories doc. Defines what the backend skeleton must implement.
 
 ## Acceptance Criteria
 
-- [ ] User story spec PR raised in \`docs/\` — BDD stories for every signed-off design
+- [ ] \`docs/tech-decisions-frontend.md\` — library proposals with rationale
+- [ ] \`docs/user-stories-frontend.md\` — BDD stories for every signed-off design
+- [ ] API skeleton section — endpoint contracts + RTK Query hooks table
 - [ ] Human review gate — developer must approve before merge
 - [ ] This issue closed on merge
 
@@ -210,21 +226,27 @@ Depends on all \`[2]\` design issues being closed.
 ## AI Notes
 
 Trigger: all \`[2]\` issues closed.
-Action: Raise a PR adding \`docs/user-stories-frontend.md\` with BDD-style stories derived from the signed-off ASCII mockups. Each story: *As a [persona], I want to [action] so that [outcome]* with acceptance criteria referencing specific UI states.
+Action: Raise a single PR with \`docs/tech-decisions-frontend.md\` (library proposals) and \`docs/user-stories-frontend.md\` (BDD stories + API skeleton). Stories reference chosen libraries where relevant (e.g. "chart renders using Recharts"). API skeleton documents response shapes as TypeScript interfaces and lists RTK Query hooks.
 `,
   },
   {
-    title: '[3b] Create frontend GitHub issues from user story spec',
+    title: '[3b] Create frontend issues + backend skeleton',
     body: `## Summary
 
-Once the user story spec PR from [3a] is merged, create individual \`[4] Feature name\` frontend implementation issues — one per story.
+Once the [3a] spec PR is merged, do two things:
+
+**1 — Frontend implementation issues**
+Create individual \`[4] Feature name\` issues from the merged user story spec. Closely related stories (e.g. same component) may be grouped into one issue.
+
+**2 — Backend skeleton PR**
+Implement the API contracts from the [3a] spec as real ASP.NET Core Minimal API endpoints using \`Bogus\` (Faker for .NET). Seeded, deterministic data. No service layer, no database — just route handlers returning shaped fake data. OpenAPI spec auto-generated so \`npm run codegen\` gives the frontend its RTK Query hooks.
 
 ## Acceptance Criteria
 
-- [ ] One \`[4] <Story>\` issue created per story in the merged user story spec
-- [ ] Each issue uses the **User Story** issue template
+- [ ] \`[4]\` issues created (one per story or grouped where appropriate)
 - [ ] \`docs/features/*.md\` updated with the GH issue numbers
-- [ ] This issue closed once all \`[4]\` issues are created
+- [ ] Backend skeleton PR raised — Faker endpoints matching the API contracts in \`docs/user-stories-frontend.md\`
+- [ ] This issue closed once all \`[4]\` issues are created and skeleton PR is raised
 
 ## Dependencies
 
@@ -233,7 +255,7 @@ Depends on [3a] PR being merged.
 ## AI Notes
 
 Trigger: [3a] PR merged.
-Action: Read \`docs/user-stories-frontend.md\`, create one \`[4] <Story>\` issue per story, update the relevant \`docs/features/*.md\` with issue numbers, then close this issue.
+Action: (1) Read \`docs/user-stories-frontend.md\`, create \`[4]\` issues, update \`docs/features/*.md\`. (2) Raise a backend skeleton PR implementing the two endpoints (\`GET /api/metrics/ratio\` and \`GET /api/metrics/indicator/:id\`) with Bogus-generated data in \`MacroMetrics.WebApi\`.
 `,
   },
   {

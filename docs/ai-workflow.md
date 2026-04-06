@@ -114,10 +114,17 @@ Design the <feature name> for <product name>.
 
 ### Phase 3 — Frontend User Stories & Issues
 
+> **BDD (Behaviour-Driven Development)** — a format for writing requirements as human-readable scenarios. Each story follows the pattern: *who* wants to do *what* and *why*, with concrete acceptance criteria that define when the story is done.
+
 | Issue | Action |
 |-------|--------|
-| [3a] | Triggered once all `[2]` issues are closed. AI raises a **spec PR** with two parts: **(A)** `docs/tech-decisions-frontend.md` — proposed library choices (UI component library, chart library, date handling, other deps) with rationale; **(B)** `docs/user-stories-frontend.md` — BDD-style stories derived from the signed-off designs, referencing the chosen libraries where relevant. Human review gate — developer must approve before merge → closed |
-| [3b] | Triggered once [3a] is merged. AI creates individual `[4] Feature name` frontend implementation issues (one per story) → closed |
+| [3a] | Triggered once all `[2]` issues are closed. AI raises a **spec PR** with three parts: **(A)** `docs/tech-decisions-frontend.md` — proposed library choices with rationale; **(B)** `docs/user-stories-frontend.md` — BDD stories derived from the signed-off designs; **(C)** API skeleton — endpoint contracts, response shapes, and RTK Query hooks table. Human review gate — developer must approve before merge → closed |
+| [3b] | Triggered once [3a] is merged. AI does two things: **(1)** creates individual `[4] Feature name` frontend implementation issues (closely related stories may be grouped into one issue); **(2)** raises a **backend skeleton PR** implementing the API contracts from [3a] using `Bogus` (Faker for .NET) — real HTTP endpoints, no service layer, deterministic seeded data. → closed |
+
+**[3a] spec PR — what the AI produces:**
+- `docs/tech-decisions-frontend.md` — library choices (UI component lib, chart lib, date handling, other deps)
+- `docs/user-stories-frontend.md` — BDD stories with acceptance criteria referencing the chosen libraries
+- API skeleton section in the stories doc: endpoint contracts (path, params, response shapes), RTK Query hooks table
 
 **[3a] tech decisions — the AI proposes choices for:**
 - UI component library (e.g. shadcn/ui, MUI, Mantine, Radix UI, or none)
@@ -129,11 +136,11 @@ Design the <feature name> for <product name>.
 
 ### Phase 4 — Frontend Implementation
 
-No initial issues. All work is driven by `[3]` issues created in Phase 3.
+No initial issues. All work is driven by `[4]` issues created by [3b]. The backend skeleton (Faker endpoints) is already running — frontend makes real HTTP calls throughout.
 
 | Issue | Action |
 |-------|--------|
-| [4] *per story* | AI implements the feature with mock/Faker data. Raises a **feature PR** with `Closes #N` in the body and a comment on the issue linking to the PR. Developer reviews → merges → issue auto-closes |
+| [4] *per story* | AI writes Vitest + RTL tests first (AC items → test cases), then implements the component/feature to make them pass. Raises a **feature PR** with `Closes #N` in the body and a comment on the issue. Developer reviews → merges → issue auto-closes |
 
 ---
 
