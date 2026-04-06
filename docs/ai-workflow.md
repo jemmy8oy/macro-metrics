@@ -86,6 +86,30 @@ This distinction makes it immediately clear whether an issue is orchestrating a 
 | [2a] | Triggered once [1c] is merged. AI scans the spec for features, creates one `[2] Feature name design` issue per feature. → [2a] closed |
 | [2] *per feature* | AI raises a **design PR** with ASCII mockups and Mermaid workflow diagrams. Developer reviews → merges or requests changes → issue closed on merge |
 
+**[2] issue structure — what the AI puts in each design issue body:**
+
+```
+Design the <feature name> for <product name>.
+
+**Feature:** `docs/features/<feature-file>.md`
+
+**Open UX questions to resolve:**
+- <question from feature file>
+- <question from feature file>
+
+**Deliverables (in the design PR):**
+- [ ] ASCII mockup for each meaningful page/component state
+- [ ] ASCII mockup for each key interaction state (loading, error, empty)
+- [ ] Mermaid workflow diagram for each key user action
+- [ ] All open UX questions answered
+```
+
+**[2] design PR — what the AI produces:**
+- One ASCII mockup per page state and interaction state
+- One Mermaid sequence/flowchart diagram per key user action (shows what the system does, what data flows, what side effects occur)
+- Answers to all open UX questions listed in the issue
+- Sign-off checklist in the PR body for the developer to review before merge
+
 ---
 
 ### Phase 3 — Frontend User Stories & Issues

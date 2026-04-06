@@ -153,22 +153,42 @@ When this issue is labelled \`ai-ready\`:
     title: '[2a] Generate UI/UX design issues from approved spec',
     body: `## Summary
 
-Once the spec PR from [1c] is merged, scan it for features and create one UI/UX design issue per feature area.
+Once the spec PR from [1c] is merged, scan \`docs/features/\` for frontend features and create one \`[2] <Feature name> design\` issue per feature.
 
 ## Acceptance Criteria
 
-- [ ] One \`[2] Feature name design\` issue created per feature identified in the spec
-- [ ] Each issue uses the **UI/UX Design** issue template
+- [ ] One \`[2] Feature name design\` issue created per frontend feature in the spec
+- [ ] Each issue assigned to the repo owner
 - [ ] This issue closed once all \`[2]\` issues are created
 
 ## Dependencies
 
-Depends on #[1c] spec PR being merged.
+Depends on [1c] spec PR being merged.
+
+## [2] Issue structure
+
+Each \`[2]\` issue the AI creates must follow this format:
+
+\`\`\`
+Design the <feature name> for <product name>.
+
+**Feature:** \`docs/features/<feature-file>.md\`
+
+**Open UX questions to resolve:**
+- <question from feature file>
+- <question from feature file>
+
+**Deliverables (in the design PR):**
+- [ ] ASCII mockup for each meaningful page/component state
+- [ ] ASCII mockup for each key interaction state (loading, error, empty)
+- [ ] Mermaid workflow diagram for each key user action
+- [ ] All open UX questions answered
+\`\`\`
 
 ## AI Notes
 
 Trigger: [1c] PR merged.
-Action: Read \`docs/features/\`, create one \`[2] <Feature> design\` issue per feature using the UI/UX Design template, then close this issue.
+Action: Read \`docs/features/\`, create one \`[2] <Feature> design\` issue per frontend feature using the structure above, assign each to the repo owner, then close this issue.
 `,
   },
   {
