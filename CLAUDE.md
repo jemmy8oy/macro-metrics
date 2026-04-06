@@ -89,3 +89,23 @@ CI runs on PRs only (`ci.yml`). Image builds are manual (`docker-build-push.yml`
 - **PR assignment**: Every PR the AI raises must be assigned to `jemmy8oy`.
 - **Issue assignment**: Every issue the AI acts on must be assigned to `jemmy8oy`.
 - **Issue linking**: Every PR body must include `Closes #N`. The AI also comments on the issue: *🤖 PR raised: #N — please review when ready.*
+
+## [2] Design Issue Template
+
+When creating `[2]` UI/UX design issues (via `[2a]`), use this structure:
+
+```
+Design the <feature name> for <product name>.
+
+**Feature:** `docs/features/<feature-file>.md`
+
+**Open UX questions to resolve:**
+- <question from feature file>
+- <question from feature file>
+
+**Deliverables (in the design PR):**
+- [ ] ASCII mockup for each meaningful page/component state
+- [ ] ASCII mockup for each key interaction state (loading, error, empty)
+- [ ] Mermaid workflow diagram for each key user action
+- [ ] All open UX questions answered
+```
