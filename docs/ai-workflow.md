@@ -116,8 +116,14 @@ Design the <feature name> for <product name>.
 
 | Issue | Action |
 |-------|--------|
-| [3a] | Triggered once all `[2]` issues are closed. AI raises a **user story spec PR** (BDD-style stories in markdown). Human review gate — developer must approve before merge → closed |
-| [3b] | Triggered once [3a] is merged. AI creates individual `[3] Feature name` frontend implementation issues → closed |
+| [3a] | Triggered once all `[2]` issues are closed. AI raises a **spec PR** with two parts: **(A)** `docs/tech-decisions-frontend.md` — proposed library choices (UI component library, chart library, date handling, other deps) with rationale; **(B)** `docs/user-stories-frontend.md` — BDD-style stories derived from the signed-off designs, referencing the chosen libraries where relevant. Human review gate — developer must approve before merge → closed |
+| [3b] | Triggered once [3a] is merged. AI creates individual `[4] Feature name` frontend implementation issues (one per story) → closed |
+
+**[3a] tech decisions — the AI proposes choices for:**
+- UI component library (e.g. shadcn/ui, MUI, Mantine, Radix UI, or none)
+- Chart / visualisation library (e.g. Recharts, Chart.js, Nivo, Visx, D3)
+- Date handling (e.g. date-fns, dayjs, native `Intl`/Temporal)
+- Any other notable runtime dependencies specific to the project
 
 ---
 
