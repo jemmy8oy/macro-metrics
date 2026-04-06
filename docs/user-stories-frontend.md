@@ -2,6 +2,8 @@
 
 > Part B of the [3a] spec. BDD-style stories derived from the signed-off Phase 2 designs (`docs/designs/homepage.md`).
 > Libraries referenced are from the approved tech decisions (`docs/tech-decisions-frontend.md`).
+>
+> **BDD (Behaviour-Driven Development)** — a format for writing requirements as human-readable scenarios. Each story follows the pattern: *who* wants to do *what* and *why*, with concrete acceptance criteria that define when the story is done. This makes stories testable and keeps implementation grounded in user intent.
 
 ---
 
@@ -135,10 +137,72 @@
 
 ---
 
+## API skeleton
+
+The frontend talks to two backend endpoints via RTK Query. During Phase 4 these are mocked; real implementations come in Phase 5.
+
+### Endpoints
+
+#### `GET /api/metrics/ratio`
+Returns a time series for the ratio of two comparable metrics.
+
+**Query params:** `numerator` (metric ID), `denominator` (metric ID)
+
+**Response shape:**
+```ts
+{
+  numerator: string        // e.g. "uk-house-prices"
+  denominator: string      // e.g. "uk-wages"
+  longRunAverage: number   // average over full history
+  series: Array<{
+    date: string           // ISO date, e.g. "2007-01-01"
+    value: number          // ratio at that date
+  }>
+}
+```
+
+#### `GET /api/metrics/indicator/:id`
+Returns a time series for a standalone indicator (CAPE, gilt yield, treasury yield).
+
+**Path param:** `id` — one of `cape`, `uk-10yr-gilt`, `us-10yr-treasury`
+
+**Response shape:**
+```ts
+{
+  id: string               // e.g. "cape"
+  label: string            // e.g. "CAPE Ratio"
+  unit: string             // e.g. "×" or "%"
+  longRunAverage: number
+  series: Array<{
+    date: string
+    value: number
+  }>
+}
+```
+
+### RTK Query wiring (`src/api/macroMetricsApi.ts`)
+
+Two endpoints to define on the RTK Query API slice:
+
+| Hook | Endpoint | Used by |
+|---|---|---|
+| `useGetRatioQuery({ numerator, denominator })` | `GET /api/metrics/ratio` | Preset cards, custom comparison chart |
+| `useGetIndicatorQuery(id)` | `GET /api/metrics/indicator/:id` | Indicator cards |
+
+### Phase 4 mock strategy
+
+During frontend implementation (Phase 4), the backend does not exist yet. Mock responses are returned using **MSW (Mock Service Worker)** — intercepted at the network layer so RTK Query behaves identically to production.
+
+- Mock handlers defined in `src/mocks/handlers.ts`
+- Static fixture data in `src/mocks/fixtures/` (one JSON file per metric)
+- MSW started in `src/main.tsx` when `import.meta.env.VITE_USE_MOCKS === 'true'`
+- `frontend/.env.development` sets `VITE_USE_MOCKS=true` by default
+
+---
+
 ## Implementation notes
 
-- All API calls use RTK Query endpoints (to be scaffolded in `src/api/`)
-- Mock / Faker data is used during Phase 4 implementation — no live backend required until Phase 5
 - The `RatioChart` component (F2.2) is a single reusable component used in both compact mode (preset cards) and full mode (custom comparison): prop `mode: 'compact' | 'full'`
 - The `IndicatorCard` (F4.1) reuses the same Recharts sparkline pattern but with fixed dimensions
 - Skeleton states are CSS-only shimmer animations (no library)
+- Date range filtering (1y/2y/5y/10y/20y/Max) is entirely client-side — full series fetched once, sliced via date-fns on the stored data
