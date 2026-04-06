@@ -189,14 +189,26 @@ Two endpoints to define on the RTK Query API slice:
 | `useGetRatioQuery({ numerator, denominator })` | `GET /api/metrics/ratio` | Preset cards, custom comparison chart |
 | `useGetIndicatorQuery(id)` | `GET /api/metrics/indicator/:id` | Indicator cards |
 
-### Phase 4 mock strategy
+### Phase 4 mock strategy — Faker backend skeleton
 
-During frontend implementation (Phase 4), the backend does not exist yet. Mock responses are returned using **MSW (Mock Service Worker)** — intercepted at the network layer so RTK Query behaves identically to production.
+During frontend implementation (Phase 4), a **backend skeleton** is created alongside the frontend issues (as part of [3b]). The skeleton implements the two endpoints above but returns **Faker-generated data** (`Bogus` NuGet package) instead of live data sources.
 
-- Mock handlers defined in `src/mocks/handlers.ts`
-- Static fixture data in `src/mocks/fixtures/` (one JSON file per metric)
-- MSW started in `src/main.tsx` when `import.meta.env.VITE_USE_MOCKS === 'true'`
-- `frontend/.env.development` sets `VITE_USE_MOCKS=true` by default
+**Why this approach over MSW:**
+- Frontend makes real HTTP calls — no network interception or test-only wiring
+- OpenAPI spec is auto-generated from the routes (Scalar/OpenAPI already in template)
+- RTK Query hooks are generated via `npm run codegen` — not hand-written
+- The backend is production-shaped from day one; Phase 5 swaps Faker for real data sources
+
+**Backend skeleton structure:**
+- Two minimal API routes in `MacroMetrics.WebApi` matching the contracts above
+- `Bogus` generates a seeded, deterministic time series (same data on every run)
+- Response shapes match the TypeScript interfaces exactly
+- No database, no service layer — Faker data returned directly from the route handler
+
+**Frontend wiring:**
+- `frontend/.env.development` sets `VITE_API_BASE_URL=http://localhost:5000`
+- RTK Query codegen (`npm run codegen`) generates hooks from the live OpenAPI spec
+- No MSW, no fixture files
 
 ---
 
