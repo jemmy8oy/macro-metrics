@@ -82,3 +82,10 @@ cd backend && dotnet ef database update \
 ```
 
 CI runs on PRs only (`ci.yml`). Image builds are manual (`docker-build-push.yml`, `workflow_dispatch`).
+
+## GitHub Conventions
+
+- **Branch target**: All PRs target `dev`. Never target `main` — `dev` → `main` is a human-only action.
+- **PR assignment**: Every PR the AI raises must be assigned to `jemmy8oy`.
+- **Issue assignment**: Every issue the AI acts on must be assigned to `jemmy8oy`.
+- **Issue linking**: Every PR body must include `Closes #N`. The AI also comments on the issue: *🤖 PR raised: #N — please review when ready.*
