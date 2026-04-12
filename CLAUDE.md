@@ -50,6 +50,28 @@ A `dotnet new` monorepo template for .NET 10 + React 19 projects. Every new proj
 | `.agents/rules/project.md` | Coding conventions, branch strategy, GitHub workflow rules |
 | `.claude/skills/action-issue/SKILL.md` | How to pick up and implement a GH issue |
 | `.claude/skills/respond-to-pr/SKILL.md` | How to respond to PR review comments |
+| `.claude/skills/pr-readiness/SKILL.md` | Pre-PR checklist — naming, AutoMapper, typed results, architecture |
+
+## Backend Architecture Quick Reference
+
+> Full detail in `docs/specs/backend-architecture.md`. These are the rules needed most often.
+
+### Model Naming
+
+| Type | Naming | Project | Rule |
+|---|---|---|---|
+| Data model | Plain noun | `DataModels/` | What the API returns; implements `I*` from Abstractions |
+| Domain model | `Domain*` | `DomainModels/` | Extends its DataModels counterpart (`DomainRatio : Ratio`) |
+| Entity | `*Entity` | `EntityModels/` | EF Core mapping only |
+| Inbound DTO | `*Request` | `DataModels/` | Only for non-trivial POST/PUT bodies — never for query params |
+| Custom response | `*Response` | `DataModels/` | Only when the route assembles a shape the service does NOT directly return |
+
+### Key Rules
+- **Abstractions** — interfaces only; zero concrete types; no project references to concrete projects
+- **Service interfaces** — always return interfaces (`IRatio`), never concrete types
+- **Route handlers** — named static methods; typed results (`Ok<T>` / `Results<T1,T2>`); map via `IMapper`; no business logic
+- **AutoMapper** — `WebApi/Mapper.cs` for Domain→Data (API boundary); `Services/Mapper.cs` for Entity→Domain (DB boundary)
+- **Always run `.claude/skills/pr-readiness/SKILL.md` before opening a PR**
 
 ## Running Locally
 
