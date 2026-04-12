@@ -15,22 +15,31 @@ public static class MetricsRoutes
         return parentGroup;
     }
 
-    private static Ok<RatioResponse> GetRatio(string numerator, string denominator, IMetricsService svc)
-        => TypedResults.Ok(ToResponse(svc.GetRatio(numerator, denominator)));
+    private static Ok<Ratio> GetRatio(string numerator, string denominator, IMetricsService svc)
+        => TypedResults.Ok(ToModel(svc.GetRatio(numerator, denominator)));
 
-    private static Results<Ok<IndicatorResponse>, NotFound> GetIndicator(string id, IMetricsService svc)
+    private static Results<Ok<Indicator>, NotFound> GetIndicator(string id, IMetricsService svc)
     {
         var indicator = svc.GetIndicator(id);
         return indicator is null
             ? TypedResults.NotFound()
-            : TypedResults.Ok(ToResponse(indicator));
+            : TypedResults.Ok(ToModel(indicator));
     }
 
-    private static RatioResponse ToResponse(IRatio r) =>
-        new(r.Numerator, r.Denominator, r.LongRunAverage,
-            r.Series.Select(p => new DataPointDto(p.Date, p.Value)).ToList());
+    private static Ratio ToModel(IRatio r) => new()
+    {
+        Numerator      = r.Numerator,
+        Denominator    = r.Denominator,
+        LongRunAverage = r.LongRunAverage,
+        Series         = r.Series.Select(p => new DataPoint { Date = p.Date, Value = p.Value }).ToList()
+    };
 
-    private static IndicatorResponse ToResponse(IIndicator i) =>
-        new(i.Id, i.Label, i.Unit, i.LongRunAverage,
-            i.Series.Select(p => new DataPointDto(p.Date, p.Value)).ToList());
+    private static Indicator ToModel(IIndicator i) => new()
+    {
+        Id             = i.Id,
+        Label          = i.Label,
+        Unit           = i.Unit,
+        LongRunAverage = i.LongRunAverage,
+        Series         = i.Series.Select(p => new DataPoint { Date = p.Date, Value = p.Value }).ToList()
+    };
 }
