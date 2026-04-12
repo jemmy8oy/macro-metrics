@@ -1,11 +1,9 @@
-namespace MacroMetrics.Abstractions.Services;
+using MacroMetrics.Abstractions.DataModels;
 
-public record DataPoint(string Date, double Value);
-public record RatioResponse(string Numerator, string Denominator, double LongRunAverage, IReadOnlyList<DataPoint> Series);
-public record IndicatorResponse(string Id, string Label, string Unit, double LongRunAverage, IReadOnlyList<DataPoint> Series);
+namespace MacroMetrics.Abstractions.Services;
 
 public interface IMetricsService
 {
-    RatioResponse GetRatio(string numerator, string denominator);
-    IndicatorResponse? GetIndicator(string id);
+    IRatio    GetRatio(string numerator, string denominator);
+    IIndicator? GetIndicator(string id);
 }

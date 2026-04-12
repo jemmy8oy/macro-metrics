@@ -1,4 +1,7 @@
+using MacroMetrics.Abstractions.DataModels;
 using MacroMetrics.Abstractions.Services;
+using MacroMetrics.DataModels.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace MacroMetrics.WebApi.Routes;
 
@@ -12,14 +15,22 @@ public static class MetricsRoutes
         return parentGroup;
     }
 
-    private static IResult GetRatio(string numerator, string denominator, IMetricsService svc)
-        => Results.Ok(svc.GetRatio(numerator, denominator));
+    private static Ok<RatioResponse> GetRatio(string numerator, string denominator, IMetricsService svc)
+        => TypedResults.Ok(ToResponse(svc.GetRatio(numerator, denominator)));
 
-    private static IResult GetIndicator(string id, IMetricsService svc)
+    private static Results<Ok<IndicatorResponse>, NotFound> GetIndicator(string id, IMetricsService svc)
     {
-        var result = svc.GetIndicator(id);
-        return result is null
-            ? Results.NotFound(new { error = $"Unknown indicator '{id}'." })
-            : Results.Ok(result);
+        var indicator = svc.GetIndicator(id);
+        return indicator is null
+            ? TypedResults.NotFound()
+            : TypedResults.Ok(ToResponse(indicator));
     }
+
+    private static RatioResponse ToResponse(IRatio r) =>
+        new(r.Numerator, r.Denominator, r.LongRunAverage,
+            r.Series.Select(p => new DataPointDto(p.Date, p.Value)).ToList());
+
+    private static IndicatorResponse ToResponse(IIndicator i) =>
+        new(i.Id, i.Label, i.Unit, i.LongRunAverage,
+            i.Series.Select(p => new DataPointDto(p.Date, p.Value)).ToList());
 }
