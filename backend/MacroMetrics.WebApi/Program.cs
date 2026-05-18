@@ -17,10 +17,16 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference("/scalar/v1");
 }
 
-using (var scope = app.Services.CreateScope())
+try
 {
+    using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.Migrate();
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning("DB migration skipped (no database available): {Message}", ex.Message);
 }
 
 app.UseHttpsRedirection();
