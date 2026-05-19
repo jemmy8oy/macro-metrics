@@ -18,5 +18,5 @@
   transition: all 0.15s;
 }
 
-.ratio-chart__ranges button:hover { color: #f1f5f9; border-color: rgba(255,255,255,0.15); }
+.ratio-chart__ranges button:hover { color: var(--text-primary); border-color: var(--glass-border); }
 .ratio-chart__ranges button.active { color: #6366f1; border-color: #6366f1; }
