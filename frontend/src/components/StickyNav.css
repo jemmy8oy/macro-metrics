@@ -23,6 +23,6 @@
 }
 
 .sticky-nav button:hover {
-  color: var(--text-primary, #f1f5f9);
+  color: var(--text-primary);
   background: rgba(255, 255, 255, 0.06);
 }

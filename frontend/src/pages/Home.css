@@ -2,7 +2,7 @@
 
 .home__section { margin-bottom: 4rem; scroll-margin-top: 60px; }
 
-.home__section-title { font-size: 1.25rem; font-weight: 600; color: #f1f5f9; margin: 0 0 1.5rem; }
+.home__section-title { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 0 0 1.5rem; }
 
 .home__preset-grid {
   display: grid;
