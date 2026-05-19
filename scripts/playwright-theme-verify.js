@@ -1,12 +1,20 @@
-// Playwright screenshot script v5 — uses JS click to avoid Recharts tooltip crash
-// Usage: node scripts/take-screenshots-v5.js
+// Playwright theme verification script for macro-metrics
+// Captures screenshots of the app in both light and dark themes, and verifies
+// that CSS custom properties resolve to legible colours in each mode.
+//
+// Usage: node scripts/playwright-theme-verify.js
+// Prerequisites: backend (port 5257) and frontend (port 5173) must be running.
+//
+// Known gotcha: clicking a PresetCard with a Playwright mouse click triggers a
+// Recharts DefaultTooltipContent error (hover fires before click resolves).
+// Use element.click() via page.evaluate() instead — no mouse movement, no crash.
 
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
 const BASE_URL = 'http://localhost:5173';
-const OUTPUT_DIR = path.join(__dirname, '../screenshots/proof-final');
+const OUTPUT_DIR = path.join(__dirname, '../screenshots');
 
 async function waitForPresets(page) {
   await page.waitForFunction(
@@ -34,7 +42,7 @@ async function checkColor(page, selector) {
   }, selector);
 }
 
-async function shootTheme(browser, themeName) {
+async function shootTheme(browser, themeName, outputDir) {
   console.log(`\n=== ${themeName.toUpperCase()} THEME ===`);
 
   const context = await browser.newContext({
@@ -61,7 +69,7 @@ async function shootTheme(browser, themeName) {
   console.log('  📸 01-hero');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(500);
-  await page.screenshot({ path: `${OUTPUT_DIR}/01-hero-${themeName}.png` });
+  await page.screenshot({ path: `${outputDir}/01-hero-${themeName}.png` });
 
   // ── Screenshot 2: Presets ──
   console.log('  📸 02-presets');
@@ -70,20 +78,17 @@ async function shootTheme(browser, themeName) {
 
   const presetTitle = await checkColor(page, '.preset-card__title');
   console.log(`  preset-card__title colour: ${JSON.stringify(presetTitle)}`);
-
   const presetValue = await checkColor(page, '.preset-card__value');
   console.log(`  preset-card__value colour: ${JSON.stringify(presetValue)}`);
 
-  await page.screenshot({ path: `${OUTPUT_DIR}/02-presets-${themeName}.png` });
+  await page.screenshot({ path: `${outputDir}/02-presets-${themeName}.png` });
 
   // ── Screenshot 3: Compare section ──
-  console.log('  📸 04-compare — JS-clicking card title to avoid Recharts hover crash...');
-
-  // Scroll to presets first
+  // Use JS click (avoids mouse hover triggering Recharts tooltip error)
+  console.log('  📸 04-compare — JS-clicking card title...');
   await page.evaluate(() => { document.getElementById('presets')?.scrollIntoView({ behavior: 'instant' }); });
   await page.waitForTimeout(300);
 
-  // Use JS click (avoids mouse hover triggering Recharts tooltip error)
   const clicked = await page.evaluate(() => {
     const title = document.querySelector('.preset-card:not(.preset-card--skeleton) .preset-card__title');
     if (title) { title.click(); return true; }
@@ -111,7 +116,7 @@ async function shootTheme(browser, themeName) {
   console.log(`  compare h3 colour: ${JSON.stringify(compareH3)}`);
   console.log(`  compare current colour: ${JSON.stringify(compareCurrent)}`);
 
-  await page.screenshot({ path: `${OUTPUT_DIR}/04-compare-${themeName}.png` });
+  await page.screenshot({ path: `${outputDir}/04-compare-${themeName}.png` });
 
   // ── Screenshot 4: Indicators ──
   console.log('  📸 05-indicators');
@@ -131,7 +136,7 @@ async function shootTheme(browser, themeName) {
   const indValue = await checkColor(page, '.indicator-card__value');
   console.log(`  indicator-card__value colour: ${JSON.stringify(indValue)}`);
 
-  await page.screenshot({ path: `${OUTPUT_DIR}/05-indicators-${themeName}.png` });
+  await page.screenshot({ path: `${outputDir}/05-indicators-${themeName}.png` });
 
   await context.close();
 }
@@ -143,8 +148,8 @@ async function main() {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
   });
 
-  await shootTheme(browser, 'light');
-  await shootTheme(browser, 'dark');
+  await shootTheme(browser, 'light', OUTPUT_DIR);
+  await shootTheme(browser, 'dark', OUTPUT_DIR);
 
   await browser.close();
 
