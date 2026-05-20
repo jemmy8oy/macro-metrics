@@ -1,6 +1,6 @@
 # Backend Design Spec — MacroMetrics Phase 5
 
-> **Status:** Proposed — awaiting developer review and merge.
+> **Status:** Proposed — open questions resolved; awaiting developer review and merge.
 > **Triggers:** All `[4]` frontend issues closed.
 > **References:** `docs/specs/backend-architecture.md`, `docs/specs/backend-srp.md`, `docs/specs/testing-strategy.md`
 
@@ -146,6 +146,7 @@ Describes a single available metric. Returned by `GET /api/metrics`.
 | `Unit` | `string` | Unit of measurement (e.g. "Index (£)", "$/oz") |
 | `Source` | `string` | Data source name (e.g. "ONS HPI", "FRED", "yfinance") |
 | `IsIndicatorOnly` | `bool` | `true` for CAPE, gilt yield, treasury yield — not usable as ratio numerator/denominator |
+| `EarliestDate` | `DateOnly` | First reliable monthly data point for this metric (see ADR-009) |
 
 ### 4.2 `DataPoint`
 A single timestamped value on a time series.
@@ -267,7 +268,7 @@ Each fetcher owns exactly the metrics it knows about. The metric catalogue maps 
 **Decision:** yfinance is a Python library. Rather than a subprocess exec or an unofficial .NET wrapper, the recommended approach is a minimal Python FastAPI sidecar that exposes yfinance data over HTTP.
 **Rationale:** Subprocess calls are fragile and hard to test. A sidecar keeps the .NET code clean and lets the fetcher be a standard `HttpClient` call — the same pattern as FRED and ONS.
 **Consequences:** Deployment requires a second container. The sidecar is an internal service (not publicly exposed). `IYFinanceFetcherService` calls it via a configured base URL — testable by mocking the HTTP gateway.
-**Open question for Phase 6:** Define sidecar API contract (`GET /series/{ticker}?from=&to=`).
+**Resolved:** See ADR-006 for the full sidecar API contract.
 
 ### ADR-003: In-memory caching (1-hour TTL)
 **Decision:** `IMemoryCache` with a 1-hour TTL per metric series, keyed by metric ID.
@@ -369,13 +370,107 @@ app.MapGroup("/api")
 
 ---
 
-## 9. Open Questions for Phase 6
+## 9. Resolved Phase 6 Decisions
 
-| # | Question | Decision needed by |
-|---|----------|--------------------|
-| 1 | yfinance sidecar API contract — define `GET /series/{ticker}` shape | Phase 6 start |
-| 2 | FRED API key storage — `appsettings.json` or environment variable secret? | Phase 6 start |
-| 3 | Gap-filling strategy for missing monthly data points (forward-fill vs drop)? | Phase 6 implementation |
-| 4 | Minimum shared history across all sources — earliest reliable date for each fetcher? | Phase 6 implementation |
-| 5 | Cache invalidation — time-based only, or manual flush endpoint? | Phase 6 |
-| 6 | Response caching headers (`Cache-Control`) for downstream CDN/browser caching? | Phase 6 |
+All six questions raised at spec time have been answered below as ADR-006 through ADR-011. Section 9 previously listed open questions; those are now closed.
+
+### ADR-006: yfinance sidecar HTTP contract
+
+**Decision:** The sidecar exposes a single endpoint:
+
+```
+GET /series/{ticker}?from=YYYY-MM-DD&to=YYYY-MM-DD
+```
+
+Both `from` and `to` are optional. Response shape (raw daily closing prices):
+
+```json
+{
+  "ticker": "GC=F",
+  "points": [
+    { "date": "2024-01-15", "close": 2023.50 },
+    { "date": "2024-01-16", "close": 2031.10 }
+  ]
+}
+```
+
+`YFinanceFetcherService` maps internal metric IDs to yfinance tickers (e.g. `gold` → `GC=F`, `ftse100` → `^FTSE`) before calling the sidecar. The raw daily points are then passed to `IDataNormalisationService` for monthly downsampling.
+
+**Rationale:** A single generic endpoint keeps the sidecar minimal and stateless. Ticker mapping lives in the `.NET` service where it is versioned alongside the catalogue.
+
+**Consequences:** The ticker-mapping table must be maintained in `YFinanceFetcherService` as new metrics are added. The sidecar has no business logic — it is purely a yfinance HTTP adapter.
+
+---
+
+### ADR-007: FRED API key — environment variable injected as Kubernetes Secret
+
+**Decision:** The FRED API key is **not** stored in `appsettings.json`. It is read via `IConfiguration["Fred:ApiKey"]`, bound to the environment variable `FRED__ApiKey` (double-underscore notation for .NET nested config). In Kubernetes the value is mounted from a Secret object.
+
+**Rationale:** Committing API keys to source control, even in non-production settings, is a security risk. Environment variables are the .NET-idiomatic way to override configuration for secrets.
+
+**Consequences:** Local development requires either a `.env`-style user secret (`dotnet user-secrets set "Fred:ApiKey" "..."`) or a local environment variable. A missing key causes a startup validation error (fail-fast).
+
+---
+
+### ADR-008: Gap-filling strategy — forward-fill (carry last known value)
+
+**Decision:** When a calendar month has no source data point, `DataNormalisationService` carries the most recent preceding value forward (forward-fill). It does **not** drop the month or interpolate.
+
+**Rationale:** A missing month in macro time-series data typically means the value was unchanged (e.g. a public holiday week, delayed release). Dropping the month would create unequal-length series that break ratio point-by-point alignment. Linear interpolation would introduce artificial precision. Forward-fill is the standard convention for monthly macro aggregates.
+
+**Consequences:** Forward-fill is applied after downsampling to end-of-month in `DataNormalisationService`. If no prior value exists (i.e. the gap is at the very start of a series), the month is dropped rather than filled with zero.
+
+---
+
+### ADR-009: Earliest reliable date — per-metric `EarliestDate` in the catalogue
+
+**Decision:** Rather than a single global cut-off, each `MetricMetadata` entry carries its own `EarliestDate`. `RatioComputationService` uses `Max(numerator.EarliestDate, denominator.EarliestDate)` as the intersection start when computing ratio series.
+
+Indicative earliest dates (to be confirmed against live sources during Phase 6 implementation):
+
+| Metric | `EarliestDate` | Source constraint |
+|--------|---------------|-------------------|
+| `gold` | 1979-01-31 | yfinance GC=F futures |
+| `oil` | 1983-03-31 | yfinance CL=F futures |
+| `ftse100` | 1984-01-31 | yfinance ^FTSE |
+| `sp500` | 1950-01-31 | yfinance ^GSPC |
+| `bitcoin` | 2014-09-30 | yfinance BTC-USD (clean history) |
+| `uk-10yr-gilt` | 1990-01-31 | yfinance availability |
+| `us-house-prices` | 1987-01-31 | FRED CSUSHPINSA |
+| `us-wages` | 1964-03-31 | FRED CES0500000003 |
+| `us-cpi` | 1947-01-31 | FRED CPIAUCSL |
+| `cape` | 1881-01-31 | Shiller monthly data via FRED |
+| `us-10yr-treasury` | 1962-01-31 | FRED DGS10 |
+| `uk-house-prices` | 1968-01-31 | ONS HPI |
+| `uk-wages` | 1963-01-31 | ONS AWE |
+| `uk-cpi` | 1988-01-31 | ONS CPI series |
+
+**Rationale:** Per-metric dates accurately reflect real availability and allow the ratio logic to be data-driven without hard-coded date constants.
+
+**Consequences:** `EarliestDate` is added to `MetricMetadata` (see §4.1). The `GET /api/metrics` response exposes it so the frontend can inform the user of data availability.
+
+---
+
+### ADR-010: Cache invalidation — time-based TTL only (no flush endpoint)
+
+**Decision:** Cache invalidation is exclusively time-based (1-hour TTL per ADR-003). No manual flush endpoint is added for MVP.
+
+**Rationale:** Macro data updates at most monthly. A 1-hour TTL is amply short. A flush endpoint adds operational surface area (auth, rate-limiting, observability) with no clear MVP benefit.
+
+**Consequences:** Stale data can persist for up to 1 hour after a source update. Acceptable for the MVP use case. Post-MVP: a `POST /admin/cache/flush` endpoint (behind authentication) can be introduced if operational needs arise.
+
+---
+
+### ADR-011: Response caching headers — `Cache-Control: public, max-age=3600`
+
+**Decision:** All three `/api/metrics` endpoints return the header:
+
+```
+Cache-Control: public, max-age=3600
+```
+
+This is set programmatically in `MetricsRoutes.cs` via `HttpContext.Response.Headers`.
+
+**Rationale:** Matching the max-age to the in-memory TTL (ADR-003) means downstream CDNs and reverse proxies will not serve staler data than the backend itself would. `public` permits shared caches (CDN) to store the response; the frontend browser also benefits from local caching on tab refresh.
+
+**Consequences:** If the in-memory TTL is ever reduced below 1 hour, the `Cache-Control` value must be updated to match. The ratio endpoint caches the same way, with the cache key implicit in the query string (`?numerator=…&denominator=…`); CDNs that vary on query string will cache ratio combinations independently.
