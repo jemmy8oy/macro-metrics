@@ -1,3 +1,4 @@
+using MacroMetrics.Abstractions.Extensions;
 using MacroMetrics.Abstractions.Services.Metrics;
 
 namespace MacroMetrics.WebApi.Routes;
@@ -15,7 +16,7 @@ public static class MetricsRoutes
                 id = m.Id,
                 label = m.Label,
                 unit = m.Unit,
-                source = m.Source,
+                source = m.Source.ToDisplayString(),
                 isIndicatorOnly = m.IsIndicatorOnly,
                 earliestDate = m.EarliestDate.ToString("yyyy-MM-dd")
             });

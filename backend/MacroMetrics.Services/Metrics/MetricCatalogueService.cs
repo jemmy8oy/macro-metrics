@@ -1,4 +1,5 @@
 using MacroMetrics.Abstractions.DataModels;
+using MacroMetrics.Abstractions.Enums;
 using MacroMetrics.Abstractions.Services.Metrics;
 using MacroMetrics.DataModels.Models;
 
@@ -14,7 +15,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "gold",
             Label = "Gold Price",
             Unit = "$/oz",
-            Source = "yfinance",
+            Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1979, 1, 31)
         },
@@ -23,7 +24,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "oil",
             Label = "Oil Price (WTI)",
             Unit = "$/barrel",
-            Source = "yfinance",
+            Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1983, 3, 31)
         },
@@ -32,7 +33,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "ftse100",
             Label = "FTSE 100",
             Unit = "Index (GBP)",
-            Source = "yfinance",
+            Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1984, 1, 31)
         },
@@ -41,7 +42,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "sp500",
             Label = "S&P 500",
             Unit = "Index (USD)",
-            Source = "yfinance",
+            Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1950, 1, 31)
         },
@@ -50,7 +51,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "bitcoin",
             Label = "Bitcoin",
             Unit = "USD",
-            Source = "yfinance",
+            Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(2014, 9, 30)
         },
@@ -59,7 +60,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "uk-10yr-gilt",
             Label = "UK 10-Year Gilt Yield",
             Unit = "% Yield",
-            Source = "yfinance",
+            Source = MetricSource.YFinance,
             IsIndicatorOnly = true,
             EarliestDate = new DateOnly(1990, 1, 31)
         },
@@ -70,7 +71,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "us-house-prices",
             Label = "US House Prices",
             Unit = "Index",
-            Source = "FRED",
+            Source = MetricSource.Fred,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1987, 1, 31)
         },
@@ -79,7 +80,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "us-wages",
             Label = "US Wages",
             Unit = "$/hour",
-            Source = "FRED",
+            Source = MetricSource.Fred,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1964, 3, 31)
         },
@@ -88,7 +89,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "us-cpi",
             Label = "US CPI",
             Unit = "Index",
-            Source = "FRED",
+            Source = MetricSource.Fred,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1947, 1, 31)
         },
@@ -97,7 +98,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "cape",
             Label = "Shiller CAPE Ratio",
             Unit = "Ratio",
-            Source = "FRED",
+            Source = MetricSource.Fred,
             IsIndicatorOnly = true,
             EarliestDate = new DateOnly(1881, 1, 31)
         },
@@ -106,7 +107,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "us-10yr-treasury",
             Label = "US 10-Year Treasury Yield",
             Unit = "% Yield",
-            Source = "FRED",
+            Source = MetricSource.Fred,
             IsIndicatorOnly = true,
             EarliestDate = new DateOnly(1962, 1, 31)
         },
@@ -117,7 +118,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "uk-house-prices",
             Label = "UK House Prices",
             Unit = "Index (£)",
-            Source = "ONS HPI",
+            Source = MetricSource.OnsHpi,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1968, 1, 31)
         },
@@ -126,7 +127,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "uk-wages",
             Label = "UK Wages",
             Unit = "£/month",
-            Source = "ONS AWE",
+            Source = MetricSource.OnsAwe,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1963, 1, 31)
         },
@@ -135,7 +136,7 @@ public class MetricCatalogueService : IMetricCatalogueService
             Id = "uk-cpi",
             Label = "UK CPI",
             Unit = "Index",
-            Source = "ONS",
+            Source = MetricSource.Ons,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1988, 1, 31)
         }

@@ -1,3 +1,4 @@
+using MacroMetrics.Abstractions.Enums;
 using MacroMetrics.Services.Metrics;
 
 namespace MacroMetrics.Services.Tests.Metrics;
@@ -49,11 +50,11 @@ public class MetricCatalogueServiceTests
     }
 
     [Fact]
-    public void GetAll_AllEntriesHaveNonEmptySource()
+    public void GetAll_AllEntriesHaveDefinedSource()
     {
         var result = _sut.GetAll();
 
-        Assert.All(result, m => Assert.False(string.IsNullOrWhiteSpace(m.Source)));
+        Assert.All(result, m => Assert.True(Enum.IsDefined(typeof(MetricSource), m.Source)));
     }
 
     [Theory]
