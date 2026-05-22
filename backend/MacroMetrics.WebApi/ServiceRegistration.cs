@@ -1,5 +1,7 @@
 using MacroMetrics.Abstractions.Services;
+using MacroMetrics.Abstractions.Services.Metrics;
 using MacroMetrics.Services;
+using MacroMetrics.Services.Metrics;
 using MacroMetrics.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,5 +17,6 @@ public static class ServiceRegistration
 
         services.AddAutoMapper(cfg => cfg.AddMaps(AppDomain.CurrentDomain.GetAssemblies()));
         services.AddScoped<IStatusService, StatusService>();
+        services.AddSingleton<IMetricCatalogueService, MetricCatalogueService>();
     }
 }
