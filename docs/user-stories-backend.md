@@ -153,28 +153,12 @@ Scenario: Ratio series computed correctly for two valid metrics
 
 ---
 
-### US-B8 — Long-run average is always computed from the full available history
-
-**As a** frontend consumer,
-**I want** the `longRunAverage` in a ratio response to reflect the full historical record,
-**So that** the reference line on the chart remains stable regardless of which date range the user is viewing.
-
-```gherkin
-Scenario: Date filter does not affect longRunAverage
-  Given a ratio series with 20+ years of history exists for "gold" and "us-wages"
-  When GET /api/metrics/ratio?numerator=gold&denominator=us-wages&from=2020-01-01 is called
-  Then the response DataPoints only cover 2020-01-01 onwards
-  And longRunAverage equals the arithmetic mean of ALL ratio points across the full historical intersection
-  And longRunAverage is not recalculated from only the filtered DataPoints
-```
-
----
-
-### US-B9 — Date range filter on a ratio series
+### US-B8 / US-B9 — Date range filter on a ratio series, with long-run average stability
 
 **As a** frontend consumer,
 **I want to** pass optional `from` and `to` parameters to `GET /api/metrics/ratio`,
-**So that** the ratio chart can be zoomed to a specific date range without reloading all history.
+**And I want** the `longRunAverage` to always reflect the full historical record,
+**So that** the ratio chart can be zoomed to a specific date range while the reference line remains stable regardless of the viewing window.
 
 ```gherkin
 Scenario: Ratio series is filtered to the requested date range
@@ -183,6 +167,13 @@ Scenario: Ratio series is filtered to the requested date range
   Then the response status is 200
   And all DataPoints have dates between 2000-01-31 and 2020-12-31 (end-of-month aligned)
   And longRunAverage is still computed from the full history since 1984
+
+Scenario: Date filter does not affect longRunAverage
+  Given a ratio series with 20+ years of history exists for "gold" and "us-wages"
+  When GET /api/metrics/ratio?numerator=gold&denominator=us-wages&from=2020-01-01 is called
+  Then the response DataPoints only cover 2020-01-01 onwards
+  And longRunAverage equals the arithmetic mean of ALL ratio points across the full historical intersection
+  And longRunAverage is not recalculated from only the filtered DataPoints
 ```
 
 ---
@@ -383,38 +374,11 @@ Scenario: Valid metric ID returns 200
 
 ---
 
-### US-B18 — Indicator-only metric used in ratio returns 400
+### US-B18 / US-B19 — Ratio endpoint rejects invalid or missing inputs
 
 **As a** frontend consumer,
-**I want** `GET /api/metrics/ratio` to return `400 Bad Request` when either the numerator or denominator is an `isIndicatorOnly` metric,
-**So that** the API enforces the business rule that indicator-only metrics (CAPE, gilt yield, treasury yield) cannot be used in ratio comparisons.
-
-```gherkin
-Scenario: Indicator-only metric as ratio numerator returns 400
-  Given "cape" is flagged isIndicatorOnly = true in the catalogue
-  When GET /api/metrics/ratio?numerator=cape&denominator=us-wages is called
-  Then the response status is 400
-  And the error message indicates that "cape" is an indicator-only metric and cannot be used as a ratio input
-
-Scenario: Indicator-only metric as ratio denominator returns 400
-  Given "uk-10yr-gilt" is flagged isIndicatorOnly = true in the catalogue
-  When GET /api/metrics/ratio?numerator=gold&denominator=uk-10yr-gilt is called
-  Then the response status is 400
-  And the error message indicates that "uk-10yr-gilt" is an indicator-only metric and cannot be used as a ratio input
-
-Scenario: Both metrics valid returns 200
-  Given "gold" and "us-wages" are both isIndicatorOnly = false
-  When GET /api/metrics/ratio?numerator=gold&denominator=us-wages is called
-  Then the response status is 200
-```
-
----
-
-### US-B19 — Ratio endpoint requires both numerator and denominator
-
-**As a** frontend consumer,
-**I want** `GET /api/metrics/ratio` to return `400 Bad Request` when either required query parameter is missing,
-**So that** the API fails fast with a clear message rather than computing a meaningless partial result.
+**I want** `GET /api/metrics/ratio` to return `400 Bad Request` when required parameters are missing or an `isIndicatorOnly` metric is supplied,
+**So that** the API enforces its business rules up-front and fails fast with a clear error message rather than computing a meaningless or forbidden result.
 
 ```gherkin
 Scenario: Missing numerator parameter returns 400
@@ -427,7 +391,20 @@ Scenario: Missing denominator parameter returns 400
   Then the response status is 400
   And the error message indicates the "denominator" parameter is required
 
-Scenario: Both parameters supplied returns 200
+Scenario: Indicator-only metric as ratio numerator returns 400
+  Given "cape" is flagged isIndicatorOnly = true in the catalogue
+  When GET /api/metrics/ratio?numerator=cape&denominator=us-wages is called
+  Then the response status is 400
+  And the error message indicates that "cape" is an indicator-only metric and cannot be used as a ratio input
+
+Scenario: Indicator-only metric as ratio denominator returns 400
+  Given "uk-10yr-gilt" is flagged isIndicatorOnly = true in the catalogue
+  When GET /api/metrics/ratio?numerator=gold&denominator=uk-10yr-gilt is called
+  Then the response status is 400
+  And the error message indicates that "uk-10yr-gilt" is an indicator-only metric and cannot be used as a ratio input
+
+Scenario: Both parameters supplied with valid, non-indicator metrics returns 200
+  Given "gold" and "us-wages" are both isIndicatorOnly = false
   When GET /api/metrics/ratio?numerator=gold&denominator=us-wages is called
   Then the response status is 200
 ```
