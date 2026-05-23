@@ -13,9 +13,9 @@ public static class MetricsRoutes
         {
             var metrics = catalogueService.GetAll().Select(m => new
             {
-                id = m.Id,
+                id = m.Id.ToDisplayString(),
                 label = m.Label,
-                unit = m.Unit,
+                unit = m.Unit.ToDisplayString(),
                 source = m.Source.ToDisplayString(),
                 isIndicatorOnly = m.IsIndicatorOnly,
                 earliestDate = m.EarliestDate.ToString("yyyy-MM-dd")

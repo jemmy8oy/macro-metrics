@@ -12,54 +12,54 @@ public class MetricCatalogueService : IMetricCatalogueService
         // yfinance metrics
         new MetricMetadata
         {
-            Id = "gold",
+            Id = MetricId.Gold,
             Label = "Gold Price",
-            Unit = "$/oz",
+            Unit = MetricUnit.UsdPerOz,
             Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1979, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "oil",
+            Id = MetricId.Oil,
             Label = "Oil Price (WTI)",
-            Unit = "$/barrel",
+            Unit = MetricUnit.UsdPerBarrel,
             Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1983, 3, 31)
         },
         new MetricMetadata
         {
-            Id = "ftse100",
+            Id = MetricId.Ftse100,
             Label = "FTSE 100",
-            Unit = "Index (GBP)",
+            Unit = MetricUnit.IndexGbp,
             Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1984, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "sp500",
+            Id = MetricId.Sp500,
             Label = "S&P 500",
-            Unit = "Index (USD)",
+            Unit = MetricUnit.IndexUsd,
             Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1950, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "bitcoin",
+            Id = MetricId.Bitcoin,
             Label = "Bitcoin",
-            Unit = "USD",
+            Unit = MetricUnit.Usd,
             Source = MetricSource.YFinance,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(2014, 9, 30)
         },
         new MetricMetadata
         {
-            Id = "uk-10yr-gilt",
+            Id = MetricId.Uk10YrGilt,
             Label = "UK 10-Year Gilt Yield",
-            Unit = "% Yield",
+            Unit = MetricUnit.PercentYield,
             Source = MetricSource.YFinance,
             IsIndicatorOnly = true,
             EarliestDate = new DateOnly(1990, 1, 31)
@@ -68,45 +68,45 @@ public class MetricCatalogueService : IMetricCatalogueService
         // FRED metrics
         new MetricMetadata
         {
-            Id = "us-house-prices",
+            Id = MetricId.UsHousePrices,
             Label = "US House Prices",
-            Unit = "Index",
+            Unit = MetricUnit.Index,
             Source = MetricSource.Fred,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1987, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "us-wages",
+            Id = MetricId.UsWages,
             Label = "US Wages",
-            Unit = "$/hour",
+            Unit = MetricUnit.UsdPerHour,
             Source = MetricSource.Fred,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1964, 3, 31)
         },
         new MetricMetadata
         {
-            Id = "us-cpi",
+            Id = MetricId.UsCpi,
             Label = "US CPI",
-            Unit = "Index",
+            Unit = MetricUnit.Index,
             Source = MetricSource.Fred,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1947, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "cape",
+            Id = MetricId.Cape,
             Label = "Shiller CAPE Ratio",
-            Unit = "Ratio",
+            Unit = MetricUnit.Ratio,
             Source = MetricSource.Fred,
             IsIndicatorOnly = true,
             EarliestDate = new DateOnly(1881, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "us-10yr-treasury",
+            Id = MetricId.Us10YrTreasury,
             Label = "US 10-Year Treasury Yield",
-            Unit = "% Yield",
+            Unit = MetricUnit.PercentYield,
             Source = MetricSource.Fred,
             IsIndicatorOnly = true,
             EarliestDate = new DateOnly(1962, 1, 31)
@@ -115,27 +115,27 @@ public class MetricCatalogueService : IMetricCatalogueService
         // ONS metrics
         new MetricMetadata
         {
-            Id = "uk-house-prices",
+            Id = MetricId.UkHousePrices,
             Label = "UK House Prices",
-            Unit = "Index (£)",
+            Unit = MetricUnit.IndexPounds,
             Source = MetricSource.OnsHpi,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1968, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "uk-wages",
+            Id = MetricId.UkWages,
             Label = "UK Wages",
-            Unit = "£/month",
+            Unit = MetricUnit.PoundsPerMonth,
             Source = MetricSource.OnsAwe,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1963, 1, 31)
         },
         new MetricMetadata
         {
-            Id = "uk-cpi",
+            Id = MetricId.UkCpi,
             Label = "UK CPI",
-            Unit = "Index",
+            Unit = MetricUnit.Index,
             Source = MetricSource.Ons,
             IsIndicatorOnly = false,
             EarliestDate = new DateOnly(1988, 1, 31)

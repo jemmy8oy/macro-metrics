@@ -1,4 +1,5 @@
 using MacroMetrics.Abstractions.Enums;
+using MacroMetrics.Abstractions.Extensions;
 using MacroMetrics.Services.Metrics;
 
 namespace MacroMetrics.Services.Tests.Metrics;
@@ -16,21 +17,21 @@ public class MetricCatalogueServiceTests
     }
 
     [Fact]
-    public void GetAll_AllEntriesHaveNonEmptyId()
+    public void GetAll_AllEntriesHaveDefinedId()
     {
         var result = _sut.GetAll();
 
-        Assert.All(result, m => Assert.False(string.IsNullOrWhiteSpace(m.Id)));
+        Assert.All(result, m => Assert.True(Enum.IsDefined(typeof(MetricId), m.Id)));
     }
 
     [Fact]
-    public void GetAll_AllIdsAreKebabCase()
+    public void GetAll_AllIdsSerialiseToKebabCase()
     {
         var result = _sut.GetAll();
 
         // kebab-case: lowercase letters, digits, and hyphens only
         Assert.All(result, m =>
-            Assert.Matches(@"^[a-z0-9]+(-[a-z0-9]+)*$", m.Id));
+            Assert.Matches(@"^[a-z0-9]+(-[a-z0-9]+)*$", m.Id.ToDisplayString()));
     }
 
     [Fact]
@@ -42,11 +43,11 @@ public class MetricCatalogueServiceTests
     }
 
     [Fact]
-    public void GetAll_AllEntriesHaveNonEmptyUnit()
+    public void GetAll_AllEntriesHaveDefinedUnit()
     {
         var result = _sut.GetAll();
 
-        Assert.All(result, m => Assert.False(string.IsNullOrWhiteSpace(m.Unit)));
+        Assert.All(result, m => Assert.True(Enum.IsDefined(typeof(MetricUnit), m.Unit)));
     }
 
     [Fact]
@@ -58,10 +59,10 @@ public class MetricCatalogueServiceTests
     }
 
     [Theory]
-    [InlineData("cape")]
-    [InlineData("uk-10yr-gilt")]
-    [InlineData("us-10yr-treasury")]
-    public void GetAll_IndicatorOnlyMetricsAreCorrectlyFlagged(string id)
+    [InlineData(MetricId.Cape)]
+    [InlineData(MetricId.Uk10YrGilt)]
+    [InlineData(MetricId.Us10YrTreasury)]
+    public void GetAll_IndicatorOnlyMetricsAreCorrectlyFlagged(MetricId id)
     {
         var result = _sut.GetAll();
 
