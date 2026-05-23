@@ -18,5 +18,6 @@ public static class ServiceRegistration
         services.AddAutoMapper(cfg => cfg.AddMaps(AppDomain.CurrentDomain.GetAssemblies()));
         services.AddScoped<IStatusService, StatusService>();
         services.AddSingleton<IMetricCatalogueService, MetricCatalogueService>();
+        services.AddScoped<IMetricSeriesService, MetricSeriesService>();
     }
 }

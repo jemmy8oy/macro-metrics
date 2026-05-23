@@ -23,7 +23,27 @@ public static class MetricsRoutes
 
             return Results.Ok(metrics);
         })
-        .WithName("GetMetrics");
+        .WithName("GetMetrics")
+        .WithSummary("Full metric catalogue with metadata.");
+
+        group.MapGet("{id}", (string id, IMetricSeriesService seriesService) =>
+        {
+            var series = seriesService.GetSeries(id);
+
+            if (series is null) return Results.NotFound();
+
+            var response = new
+            {
+                id     = series.Id,
+                label  = series.Label,
+                unit   = series.Unit,
+                points = series.Points.Select(p => new { date = p.Date, value = p.Value })
+            };
+
+            return Results.Ok(response);
+        })
+        .WithName("GetMetricSeries")
+        .WithSummary("Full time series for a single metric.");
 
         return parentGroup;
     }
