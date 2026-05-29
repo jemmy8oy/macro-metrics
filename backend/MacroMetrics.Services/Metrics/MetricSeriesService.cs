@@ -6,7 +6,9 @@ using MacroMetrics.DomainModels.Models;
 
 namespace MacroMetrics.Services.Metrics;
 
-public class MetricSeriesService(IMetricCatalogueService catalogueService) : IMetricSeriesService
+public class MetricSeriesService(
+    IMetricCatalogueService    catalogueService,
+    IDataNormalisationService  normalisationService) : IMetricSeriesService
 {
     public IMetricSeries? GetSeries(string id)
     {
@@ -17,18 +19,20 @@ public class MetricSeriesService(IMetricCatalogueService catalogueService) : IMe
 
         var rng    = new Randomizer(Math.Abs(id.GetHashCode()));
         var origin = metadata.EarliestDate.ToDateTime(TimeOnly.MinValue);
-        var series = GenerateSeries(rng, origin, startValue: rng.Double(10, 100), volatility: 0.03);
+        var raw    = GenerateRawSeries(rng, origin, startValue: rng.Double(10, 100), volatility: 0.03);
+
+        var normalised = normalisationService.NormaliseToMonthlyEndOfMonth(raw);
 
         return new DomainMetricSeries
         {
             Id     = id,
             Label  = metadata.Label,
             Unit   = metadata.Unit.ToDisplayString(),
-            Points = series
+            Points = normalised
         };
     }
 
-    private static List<DomainMetricPoint> GenerateSeries(
+    private static List<DomainMetricPoint> GenerateRawSeries(
         Randomizer rng, DateTime origin, double startValue, double volatility)
     {
         var end    = DateTime.UtcNow;

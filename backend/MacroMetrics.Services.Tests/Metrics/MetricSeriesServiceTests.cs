@@ -15,7 +15,7 @@ namespace MacroMetrics.Services.Tests.Metrics;
 /// </summary>
 public class MetricSeriesServiceTests
 {
-    private readonly MetricSeriesService _sut = new(new MetricCatalogueService());
+    private readonly MetricSeriesService _sut = new(new MetricCatalogueService(), new DataNormalisationService());
 
     // --- Happy path: known metric "gold" ---
 
