@@ -10,7 +10,7 @@ public class MetricSeriesService(
     IMetricCatalogueService    catalogueService,
     IDataNormalisationService  normalisationService) : IMetricSeriesService
 {
-    public IMetricSeries? GetSeries(string id)
+    public IMetricSeries? GetSeries(string id, DateOnly? from = null, DateOnly? to = null)
     {
         var metadata = catalogueService.GetAll()
             .FirstOrDefault(m => m.Id.ToDisplayString() == id);
@@ -23,13 +23,32 @@ public class MetricSeriesService(
 
         var normalised = normalisationService.NormaliseToMonthlyEndOfMonth(raw);
 
+        var filtered = ApplyDateFilter(normalised, from, to);
+
         return new DomainMetricSeries
         {
             Id     = id,
             Label  = metadata.Label,
             Unit   = metadata.Unit.ToDisplayString(),
-            Points = normalised
+            Points = filtered
         };
+    }
+
+    private static IReadOnlyList<IMetricPoint> ApplyDateFilter(
+        IReadOnlyList<IMetricPoint> points, DateOnly? from, DateOnly? to)
+    {
+        if (from is null && to is null)
+            return points;
+
+        return points
+            .Where(p =>
+            {
+                var date = DateOnly.ParseExact(p.Date, "yyyy-MM-dd");
+                if (from is not null && date < from.Value) return false;
+                if (to   is not null && date > to.Value)   return false;
+                return true;
+            })
+            .ToList();
     }
 
     private static List<DomainMetricPoint> GenerateRawSeries(

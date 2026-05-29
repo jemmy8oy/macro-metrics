@@ -26,9 +26,9 @@ public static class MetricsRoutes
         .WithName("GetMetrics")
         .WithSummary("Full metric catalogue with metadata.");
 
-        group.MapGet("{id}", (string id, IMetricSeriesService seriesService) =>
+        group.MapGet("{id}", (string id, DateOnly? from, DateOnly? to, IMetricSeriesService seriesService) =>
         {
-            var series = seriesService.GetSeries(id);
+            var series = seriesService.GetSeries(id, from, to);
 
             if (series is null) return Results.NotFound();
 
@@ -43,7 +43,7 @@ public static class MetricsRoutes
             return Results.Ok(response);
         })
         .WithName("GetMetricSeries")
-        .WithSummary("Full time series for a single metric.");
+        .WithSummary("Time series for a single metric, with optional from/to date range filter.");
 
         return parentGroup;
     }

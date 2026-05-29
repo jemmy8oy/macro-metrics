@@ -4,5 +4,5 @@ namespace MacroMetrics.Abstractions.Services.Metrics;
 
 public interface IMetricSeriesService
 {
-    IMetricSeries? GetSeries(string id);
+    IMetricSeries? GetSeries(string id, DateOnly? from = null, DateOnly? to = null);
 }
