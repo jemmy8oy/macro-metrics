@@ -26,6 +26,25 @@ public static class MetricsRoutes
         .WithName("GetMetrics")
         .WithSummary("Full metric catalogue with metadata.");
 
+        group.MapGet("ratio", (string numerator, string denominator, IMetricRatioService ratioService) =>
+        {
+            var ratio = ratioService.GetRatio(numerator, denominator);
+
+            if (ratio is null) return Results.NotFound();
+
+            var response = new
+            {
+                numeratorId    = ratio.NumeratorId,
+                denominatorId  = ratio.DenominatorId,
+                points         = ratio.Points.Select(p => new { date = p.Date, value = p.Value }),
+                longRunAverage = ratio.LongRunAverage
+            };
+
+            return Results.Ok(response);
+        })
+        .WithName("GetMetricRatio")
+        .WithSummary("Ratio series for two metrics (numerator / denominator), covering the intersection of their date ranges.");
+
         group.MapGet("{id}", (string id, IMetricSeriesService seriesService) =>
         {
             var series = seriesService.GetSeries(id);
