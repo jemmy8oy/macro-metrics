@@ -19,5 +19,6 @@ public static class ServiceRegistration
         services.AddScoped<IStatusService, StatusService>();
         services.AddSingleton<IMetricCatalogueService, MetricCatalogueService>();
         services.AddScoped<IMetricSeriesService, MetricSeriesService>();
+        services.AddScoped<IMetricRatioService, MetricRatioService>();
     }
 }
