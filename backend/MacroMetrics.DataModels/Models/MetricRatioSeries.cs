@@ -4,8 +4,8 @@ namespace MacroMetrics.DataModels.Models;
 
 public class MetricRatioSeries : IMetricRatioSeries
 {
-    public string                      NumeratorId    { get; set; } = "";
-    public string                      DenominatorId  { get; set; } = "";
-    public IReadOnlyList<IMetricPoint> Points         { get; set; } = [];
-    public double                      LongRunAverage { get; set; }
+    public required string                      NumeratorId    { get; set; }
+    public required string                      DenominatorId  { get; set; }
+    public required IReadOnlyList<IMetricPoint> Points         { get; set; }
+    public required double                      LongRunAverage { get; set; }
 }
