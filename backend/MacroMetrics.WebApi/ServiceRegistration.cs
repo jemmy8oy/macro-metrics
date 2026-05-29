@@ -1,7 +1,9 @@
 using MacroMetrics.Abstractions.Services;
 using MacroMetrics.Abstractions.Services.Metrics;
+using MacroMetrics.Abstractions.Services.Normalisation;
 using MacroMetrics.Services;
 using MacroMetrics.Services.Metrics;
+using MacroMetrics.Services.Normalisation;
 using MacroMetrics.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,5 +22,6 @@ public static class ServiceRegistration
         services.AddSingleton<IMetricCatalogueService, MetricCatalogueService>();
         services.AddScoped<IMetricSeriesService, MetricSeriesService>();
         services.AddScoped<IMetricRatioService, MetricRatioService>();
+        services.AddScoped<IDataNormalisationService, DataNormalisationService>();
     }
 }
