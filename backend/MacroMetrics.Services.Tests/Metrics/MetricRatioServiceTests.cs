@@ -222,4 +222,144 @@ public class MetricRatioServiceTests
 
         Assert.NotNull(result);
     }
+
+    // =========================================================================
+    // US-B8 / US-B9 — Date range filter with stable long-run average
+    // =========================================================================
+
+    /// <summary>
+    /// Scenario: Ratio series is filtered to the requested date range
+    ///   Given ratio history exists for "us-house-prices" and "us-wages"
+    ///   When GetRatio is called with from=2000-01-01 and to=2010-12-31
+    ///   Then all returned DataPoints have dates between 2000-01-01 and 2010-12-31
+    ///   And longRunAverage is still computed from the full history
+    /// </summary>
+
+    [Fact]
+    public void GetRatio_WithFromAndTo_ReturnsOnlyPointsInRange()
+    {
+        var sut    = CreateSut();
+        const string from = "2000-01-01";
+        const string to   = "2010-12-31";
+
+        var result = sut.GetRatio("us-house-prices", "us-wages", from, to);
+
+        Assert.NotNull(result);
+        Assert.All(result!.Points, p =>
+        {
+            Assert.True(string.Compare(p.Date, from, StringComparison.Ordinal) >= 0,
+                $"Point date {p.Date} is before 'from' bound {from}");
+            Assert.True(string.Compare(p.Date, to, StringComparison.Ordinal) <= 0,
+                $"Point date {p.Date} is after 'to' bound {to}");
+        });
+    }
+
+    [Fact]
+    public void GetRatio_WithFromAndTo_DoesNotReturnEmptyPoints()
+    {
+        var sut    = CreateSut();
+        var result = sut.GetRatio("us-house-prices", "us-wages", "2000-01-01", "2010-12-31");
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result!.Points);
+    }
+
+    [Fact]
+    public void GetRatio_WithFromOnly_ReturnsOnlyPointsOnOrAfterFrom()
+    {
+        var sut    = CreateSut();
+        const string from = "2010-01-01";
+
+        var result = sut.GetRatio("us-house-prices", "us-wages", from: from);
+
+        Assert.NotNull(result);
+        Assert.All(result!.Points, p =>
+            Assert.True(string.Compare(p.Date, from, StringComparison.Ordinal) >= 0,
+                $"Point date {p.Date} is before 'from' bound {from}"));
+    }
+
+    [Fact]
+    public void GetRatio_WithToOnly_ReturnsOnlyPointsOnOrBeforeTo()
+    {
+        var sut    = CreateSut();
+        const string to = "2010-12-31";
+
+        var result = sut.GetRatio("us-house-prices", "us-wages", to: to);
+
+        Assert.NotNull(result);
+        Assert.All(result!.Points, p =>
+            Assert.True(string.Compare(p.Date, to, StringComparison.Ordinal) <= 0,
+                $"Point date {p.Date} is after 'to' bound {to}"));
+    }
+
+    /// <summary>
+    /// Scenario: Date filter does not affect longRunAverage
+    ///   Given ratio history with 20+ years exists for "us-house-prices" and "us-wages"
+    ///   When GetRatio is called with from=2020-01-01
+    ///   Then longRunAverage equals the mean of ALL ratio points across the full historical record
+    ///   And longRunAverage is NOT recalculated from only the filtered DataPoints
+    /// </summary>
+
+    [Fact]
+    public void GetRatio_WithDateFilter_LongRunAverageMatchesUnfilteredMean()
+    {
+        var sut = CreateSut();
+
+        // Compute the baseline long-run average with no filter
+        var unfiltered     = sut.GetRatio("us-house-prices", "us-wages")!;
+        var expectedLra    = unfiltered.LongRunAverage;
+
+        // Now apply a date filter that restricts to a narrow recent window
+        var filtered = sut.GetRatio("us-house-prices", "us-wages", from: "2020-01-01");
+
+        Assert.NotNull(filtered);
+        Assert.Equal(expectedLra, filtered!.LongRunAverage);
+    }
+
+    [Fact]
+    public void GetRatio_WithDateFilter_FilteredPointCountIsLessThanUnfiltered()
+    {
+        var sut        = CreateSut();
+        var unfiltered = sut.GetRatio("us-house-prices", "us-wages")!;
+        var filtered   = sut.GetRatio("us-house-prices", "us-wages", from: "2020-01-01");
+
+        Assert.NotNull(filtered);
+        Assert.True(filtered!.Points.Count < unfiltered.Points.Count,
+            "Filtered result should contain fewer points than the unfiltered series");
+    }
+
+    [Fact]
+    public void GetRatio_WithDateFilter_LongRunAverageNotRecalculatedFromFilteredPoints()
+    {
+        var sut = CreateSut();
+
+        var filtered = sut.GetRatio("us-house-prices", "us-wages", from: "2020-01-01");
+
+        Assert.NotNull(filtered);
+
+        // If the longRunAverage were wrongly recalculated from the filtered slice only,
+        // it would equal the mean of the filtered points — it must NOT.
+        var filteredMean = filtered!.Points.Count > 0
+            ? Math.Round(filtered.Points.Average(p => p.Value), 4)
+            : 0;
+
+        var unfiltered = sut.GetRatio("us-house-prices", "us-wages")!;
+
+        // The long-run average should match the unfiltered mean, not the filtered mean
+        Assert.Equal(unfiltered.LongRunAverage, filtered.LongRunAverage);
+        // Sanity: filtered mean differs (series is long enough for a meaningful difference)
+        // We simply confirm the LRA equals full-history mean, not the narrow slice mean.
+        Assert.NotEqual(filteredMean, filtered.LongRunAverage);
+    }
+
+    [Fact]
+    public void GetRatio_NoDateFilter_LongRunAverageEqualsMeanOfAllPoints()
+    {
+        // Regression guard: when no filter is applied the behaviour is unchanged
+        var sut    = CreateSut();
+        var result = sut.GetRatio("us-house-prices", "us-wages")!;
+        var expected = Math.Round(result.Points.Average(p => p.Value), 4);
+
+        Assert.Equal(expected, result.LongRunAverage);
+    }
 }
