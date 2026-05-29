@@ -4,7 +4,7 @@ using MacroMetrics.Services.Normalisation;
 namespace MacroMetrics.Services.Tests.Normalisation;
 
 /// <summary>
-/// BDD-aligned tests derived from Issue #51 (US-B10).
+/// BDD-aligned tests derived from Issue #51 (US-B10) and Issue #52 (US-B11).
 ///
 /// Scenario A: Daily series is downsampled to monthly end-of-month
 ///   Given a raw daily series with multiple data points per calendar month
@@ -18,6 +18,18 @@ namespace MacroMetrics.Services.Tests.Normalisation;
 ///   When DataNormalisationService normalises the series
 ///   Then each date is shifted to the end of its calendar month (e.g. 2024-01-31)
 ///   And values are unchanged
+///
+/// Scenario C: A gap month is filled with the preceding value (US-B11)
+///   Given a raw series that has data for 2024-01 and 2024-03 but not 2024-02
+///   When DataNormalisationService normalises the series
+///   Then the output contains a DataPoint for 2024-02-29
+///   And that DataPoint's value equals the 2024-01-31 value (carry-forward)
+///
+/// Scenario D: A leading gap at the start of the series is dropped, not filled (US-B11)
+///   Given a raw series where the first available data point is 2024-03-31
+///   When DataNormalisationService normalises the series
+///   Then no DataPoints exist before 2024-03-31
+///   And no zero-value placeholder DataPoints are inserted
 /// </summary>
 public class DataNormalisationServiceTests
 {
@@ -214,6 +226,162 @@ public class DataNormalisationServiceTests
 
         Assert.Single(result);
         Assert.Equal("2023-02-28", result[0].Date);
+    }
+
+    // =========================================================================
+    // Scenario C — Gap month forward-filled with preceding value (US-B11)
+    // =========================================================================
+
+    [Fact]
+    public void Normalise_GapMonth_IsForwardFilledWithPrecedingValue()
+    {
+        // Given: data for Jan and Mar 2024 but nothing for Feb
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-01-31", Value = 42.0 },
+            new MetricPoint { Date = "2024-03-31", Value = 99.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: three consecutive monthly points
+        Assert.Equal(3, result.Count);
+    }
+
+    [Fact]
+    public void Normalise_GapMonth_FilledPointHasCorrectEndOfMonthDate()
+    {
+        // Given: data for Jan and Mar 2024 but nothing for Feb
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-01-31", Value = 42.0 },
+            new MetricPoint { Date = "2024-03-31", Value = 99.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: the middle point is dated 2024-02-29 (leap year)
+        Assert.Equal("2024-02-29", result[1].Date);
+    }
+
+    [Fact]
+    public void Normalise_GapMonth_FilledPointCarriesForwardPrecedingValue()
+    {
+        // Given: data for Jan and Mar 2024 but nothing for Feb
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-01-31", Value = 42.0 },
+            new MetricPoint { Date = "2024-03-31", Value = 99.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: Feb value is the Jan value (carry-forward)
+        Assert.Equal(42.0, result[1].Value);
+    }
+
+    [Fact]
+    public void Normalise_MultipleConsecutiveGapMonths_AllFilledWithLastKnownValue()
+    {
+        // Given: data for Jan and Apr 2024 only (Feb and Mar are missing)
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-01-31", Value = 10.0 },
+            new MetricPoint { Date = "2024-04-30", Value = 40.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: four months — Jan, Feb (filled), Mar (filled), Apr
+        Assert.Equal(4, result.Count);
+        Assert.Equal("2024-01-31", result[0].Date);
+        Assert.Equal("2024-02-29", result[1].Date);
+        Assert.Equal("2024-03-31", result[2].Date);
+        Assert.Equal("2024-04-30", result[3].Date);
+
+        // And all filled months carry the Jan value
+        Assert.Equal(10.0, result[1].Value);
+        Assert.Equal(10.0, result[2].Value);
+        Assert.Equal(40.0, result[3].Value);
+    }
+
+    [Fact]
+    public void Normalise_NoGapMonths_OutputUnchanged()
+    {
+        // Given: a contiguous monthly series — no gaps to fill
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-01-15", Value = 1.0 },
+            new MetricPoint { Date = "2024-02-15", Value = 2.0 },
+            new MetricPoint { Date = "2024-03-15", Value = 3.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: exactly three points (no extras inserted)
+        Assert.Equal(3, result.Count);
+        Assert.Equal("2024-01-31", result[0].Date);
+        Assert.Equal("2024-02-29", result[1].Date);
+        Assert.Equal("2024-03-31", result[2].Date);
+    }
+
+    // =========================================================================
+    // Scenario D — Leading gaps are dropped, not filled (US-B11)
+    // =========================================================================
+
+    [Fact]
+    public void Normalise_LeadingGap_NoPointsInsertedBeforeFirstDataPoint()
+    {
+        // Given: first data point is 2024-03-31 (no data for Jan or Feb)
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-03-31", Value = 55.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: only one point, starting at 2024-03-31
+        Assert.Single(result);
+        Assert.Equal("2024-03-31", result[0].Date);
+    }
+
+    [Fact]
+    public void Normalise_LeadingGap_NoZeroValuePlaceholdersInserted()
+    {
+        // Given: first data point is 2024-03-31 only
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-03-31", Value = 55.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: no zero-value placeholders
+        Assert.DoesNotContain(result, p => p.Value == 0.0 && p.Date != "2024-03-31");
+        Assert.Equal(55.0, result[0].Value);
+    }
+
+    [Fact]
+    public void Normalise_LeadingGapThenInternalGap_OnlyInternalGapIsFilled()
+    {
+        // Given: data starts at Mar 2024 (leading gap Jan–Feb dropped),
+        //        then May 2024 only (Apr is an internal gap)
+        var raw = new[]
+        {
+            new MetricPoint { Date = "2024-03-15", Value = 30.0 },
+            new MetricPoint { Date = "2024-05-15", Value = 50.0 }
+        };
+
+        var result = _sut.Normalise(raw);
+
+        // Then: three points — Mar, Apr (filled), May
+        Assert.Equal(3, result.Count);
+        Assert.Equal("2024-03-31", result[0].Date);
+        Assert.Equal("2024-04-30", result[1].Date);
+        Assert.Equal("2024-05-31", result[2].Date);
+
+        // Apr carries the Mar value; no points before Mar
+        Assert.Equal(30.0, result[1].Value);
     }
 
     // =========================================================================
