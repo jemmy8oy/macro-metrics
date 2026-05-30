@@ -270,6 +270,21 @@ Scenario: ONS API unavailability surfaces as a typed exception
   When OnsFetcherService.FetchRawAsync is called
   Then a FetcherException is thrown with a message indicating the ONS source and the HTTP status code
   And the exception is not swallowed silently
+
+Scenario: In-process integration — DI-wired OnsFetcherService parses a stubbed ONS response correctly
+  Given OnsFetcherService is registered via AddHttpClient<IOnsFetcherService, OnsFetcherService> in a ServiceCollection
+  And the HttpClient is configured with a FakeHttpMessageHandler returning a valid ONS months payload
+  When IOnsFetcherService.FetchRawAsync("uk-cpi") is resolved from the container and called
+  Then the returned list contains one IMetricPoint per month in the stub payload
+  And each point's Date is in "yyyy-MM-dd" format representing the first day of the month
+  And each point's Value matches the decimal in the stub payload
+  And no FetcherException is thrown
+
+Scenario: In-process integration — DI-wired OnsFetcherService propagates FetcherException on non-200 stub
+  Given OnsFetcherService is registered via AddHttpClient<IOnsFetcherService, OnsFetcherService> in a ServiceCollection
+  And the HttpClient is configured with a FakeHttpMessageHandler returning HTTP 503
+  When IOnsFetcherService.FetchRawAsync("uk-wages") is resolved from the container and called
+  Then a FetcherException is thrown containing the HTTP status code
 ```
 
 ---
