@@ -244,6 +244,51 @@ Scenario: UK metric routes to ONS fetcher
 
 ---
 
+### US-B12b — OnsFetcherService makes real HTTP calls to the ONS API
+
+**As a** backend service,
+**I want** `OnsFetcherService` to call the ONS REST API with the correct dataset and series IDs for each UK metric,
+**So that** real historical data is returned rather than a stub response.
+
+```gherkin
+Scenario: OnsFetcherService maps metric IDs to correct ONS series identifiers
+  Given the ONS API is reachable at https://api.ons.gov.uk
+  When OnsFetcherService.FetchRawAsync("uk-house-prices") is called
+  Then a GET request is made to /v1/datasets/housepriceindex/timeseries/AVHP/data
+  And when called with "uk-wages", the request targets /v1/datasets/averageweeklyearnings/timeseries/KAC3/data
+  And when called with "uk-cpi", the request targets /v1/datasets/cpih01/timeseries/L55O/data
+
+Scenario: ONS response is correctly parsed into a raw data series
+  Given the ONS API returns a JSON body with a "months" array of {date, value} objects
+  When OnsFetcherService processes the response
+  Then each value string is parsed to a decimal
+  And each date string (e.g. "2024 JAN") is parsed to a DateOnly representing the first day of that month
+  And the resulting raw series is returned as an IEnumerable<RawDataPoint>
+
+Scenario: ONS API unavailability surfaces as a typed exception
+  Given the ONS API returns a non-200 status code (e.g. 503)
+  When OnsFetcherService.FetchRawAsync is called
+  Then a FetcherException is thrown with a message indicating the ONS source and the HTTP status code
+  And the exception is not swallowed silently
+
+Scenario: In-process integration — DI-wired OnsFetcherService parses a stubbed ONS response correctly
+  Given OnsFetcherService is registered via AddHttpClient<IOnsFetcherService, OnsFetcherService> in a ServiceCollection
+  And the HttpClient is configured with a FakeHttpMessageHandler returning a valid ONS months payload
+  When IOnsFetcherService.FetchRawAsync("uk-cpi") is resolved from the container and called
+  Then the returned list contains one IMetricPoint per month in the stub payload
+  And each point's Date is in "yyyy-MM-dd" format representing the first day of the month
+  And each point's Value matches the decimal in the stub payload
+  And no FetcherException is thrown
+
+Scenario: In-process integration — DI-wired OnsFetcherService propagates FetcherException on non-200 stub
+  Given OnsFetcherService is registered via AddHttpClient<IOnsFetcherService, OnsFetcherService> in a ServiceCollection
+  And the HttpClient is configured with a FakeHttpMessageHandler returning HTTP 503
+  When IOnsFetcherService.FetchRawAsync("uk-wages") is resolved from the container and called
+  Then a FetcherException is thrown containing the HTTP status code
+```
+
+---
+
 ### US-B13 — US macroeconomic metrics fetched from FRED
 
 **As a** backend service,

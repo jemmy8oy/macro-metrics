@@ -26,8 +26,13 @@ public static class ServiceRegistration
         services.AddScoped<IMetricRatioService, MetricRatioService>();
         services.AddScoped<IDataNormalisationService, DataNormalisationService>();
 
+        // ONS fetcher — typed HTTP client targeting the ONS REST API
+        services.AddHttpClient<IOnsFetcherService, OnsFetcherService>(client =>
+        {
+            client.BaseAddress = new Uri("https://api.ons.gov.uk");
+        });
+
         // Fetcher services — stub implementations; real HTTP calls wired in future stories
-        services.AddScoped<IOnsFetcherService, OnsFetcherService>();
         services.AddScoped<IFredFetcherService, FredFetcherService>();
         services.AddScoped<IYFinanceFetcherService, YFinanceFetcherService>();
 
